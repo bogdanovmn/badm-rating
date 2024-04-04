@@ -6,11 +6,11 @@
 
     <parent>
         <groupId>com.github.bogdanovmn.badmrating</groupId>
-        <artifactId>badm-rating</artifactId>
+        <artifactId>br-sources</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>br-import</artifactId>
-
+    <artifactId>brs-rnbf</artifactId>
+    <version>${revision}</version>
 
 </project>

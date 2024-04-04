@@ -14,9 +14,43 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.github.bogdanovmn.badmrating</groupId>
+            <artifactId>brs-rnbf</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.bogdanovmn.jaclin</groupId>
             <artifactId>jaclin</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <finalName>crawler</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.github.bogdanovmn.badmrating.cli.App</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>uber-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
