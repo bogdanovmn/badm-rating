@@ -76,6 +76,11 @@
                 <artifactId>http-client-simple</artifactId>
                 <version>3.1.0</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.bogdanovmn.common.core</groupId>
+                <artifactId>common-core</artifactId>
+                <version>1.9.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

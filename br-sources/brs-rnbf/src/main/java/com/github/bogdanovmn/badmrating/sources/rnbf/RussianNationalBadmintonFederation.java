@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.badmrating.sources.rnbf;
 
-import com.github.bogdanovmn.httpclient.core.ResponseException;
+import com.github.bogdanovmn.badmrating.core.ArchiveFileExternal;
+import com.github.bogdanovmn.badmrating.core.RatingSource;
 import com.github.bogdanovmn.httpclient.simple.SimpleHttpClient;
 import lombok.RequiredArgsConstructor;
 
@@ -8,14 +9,18 @@ import java.io.IOException;
 import java.util.Set;
 
 @RequiredArgsConstructor
-public class RussianNationalBadmintonFederation {
+public class RussianNationalBadmintonFederation implements RatingSource {
     private static final String PREFIX_URL = "http://www.badm.ru";
 
     private final ArchiveFiles archiveFiles = new ArchiveFiles(new SimpleHttpClient());
 
-    public ArchiveOverview archiveOverview() throws ResponseException, IOException {
-        return new ArchiveOverview(
-            archiveFiles.all()
-        );
+    @Override
+    public Set<ArchiveFileExternal> archiveOverview() throws IOException {
+        return archiveFiles.all();
+    }
+
+    @Override
+    public String id() {
+        return "RNBF";
     }
 }
