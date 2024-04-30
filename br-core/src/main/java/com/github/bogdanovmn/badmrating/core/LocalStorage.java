@@ -42,15 +42,18 @@ public class LocalStorage {
                             externalArchive.getDate(),
                             IOUtils.toByteArray(fileData)
                         );
-                        files.put(externalArchive.getDate(), new ArchiveFile(file));
+                        files.put(externalArchive.getDate(), source.archiveFile(file));
                     }
                 }
+                return;
             }
         }
     }
 
     public Optional<ArchiveFile> latest() {
-        return null;
+        return files.entrySet().stream()
+            .max(Map.Entry.comparingByKey())
+            .map(Map.Entry::getValue);
     }
 
     private synchronized void init() throws IOException {
@@ -62,7 +65,7 @@ public class LocalStorage {
             files = new Directory(
                 Paths.get(rootDir, source.id()).toString()
             ).filesWithExtRecursively(FILE_EXT)
-                .stream().map(ArchiveFile::new)
+                .stream().map(source::archiveFile)
                 .collect(
                     Collectors.toMap(ArchiveFile::date, Function.identity())
                 );

@@ -35,7 +35,7 @@ public class App {
                             entry -> System.out.printf("%s: %s files%n", entry.getKey(), entry.getValue().size())
                         );
                 } else if (options.enabled(OPT_LATEST)) {
-                    LocalStorage storage = new LocalStorage(OPT_STORAGE_DIR, source);
+                    LocalStorage storage = new LocalStorage(options.get(OPT_STORAGE_DIR), source);
                     storage.update();
                     ArchiveFile archive = storage.latest().orElseThrow(() -> new NoSuchElementException("Can't find any archive"));
                     archive.content();

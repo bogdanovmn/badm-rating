@@ -6,7 +6,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,9 +21,9 @@ public class ArchiveFileExternal {
 
     record DatePattern(Pattern pattern, boolean withDayCorrection) {}
 
-    private static final Set<DatePattern> DATES = Set.of(
+    private static final List<DatePattern> DATES = List.of(
         new DatePattern(
-            Pattern.compile("^.*/(?<year>\\d{4})/rank_?(?<day1>\\d\\d)_(?<month>\\d\\d)_(?<day2>\\d\\d)(\\D.*)?\\.xls$"),
+            Pattern.compile("^.*/(?<year>\\d{4})/rank(ing)?_?(?<day1>\\d\\d)_(?<month>\\d\\d)_(?<day2>\\d\\d)(\\D.*)?\\.xls$"),
             true
         ),
         new DatePattern(
@@ -31,7 +31,15 @@ public class ArchiveFileExternal {
             false
         ),
         new DatePattern(
-            Pattern.compile("^.*(rank|ranking|gp|ss)(\\s+|_)?(?<day>\\d\\d)_(?<month>\\d\\d)_(?<year>\\d{4})(\\D.*)?\\.xls$", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("^.*/(?<year>\\d{4})/(rank|ranking|gp|ss)(\\s+|_)?(?<day>\\d\\d)([_.])?(?<month>\\d\\d)([_.])?\\k<year>(\\D.*)?\\.xls$", Pattern.CASE_INSENSITIVE),
+            false
+        ),
+        new DatePattern(
+            Pattern.compile("^.*/(?<year>\\d{4})/(rank|ranking|gp|ss)(\\s+|_)?(?<day>\\d\\d)([_.])(?<month>\\d\\d)([_.])\\d\\d(\\D.*)?\\.xls$", Pattern.CASE_INSENSITIVE),
+            false
+        ),
+        new DatePattern(
+            Pattern.compile("^.*ranking/(?<year>\\d{4})/rank(ing)?_(?<day>\\d\\d)_(?<month>\\d\\d)\\.xls$", Pattern.CASE_INSENSITIVE),
             false
         )
     );
