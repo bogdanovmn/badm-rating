@@ -1,8 +1,6 @@
 package com.github.bogdanovmn.badmrating.core;
 
-enum RatingType {
+public enum RatingType {
     // Российская Национальная Федерация Бадминтона
-    CompetitionsRating, // РС
-    CurrentRussianRating, // ТВР
-    BadmintonWorldFederationRating // BWF
+    RNBFRating // РС
 }

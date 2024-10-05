@@ -12,7 +12,6 @@ import java.util.Set;
 
 @RequiredArgsConstructor
 public class RussianNationalBadmintonFederation implements RatingSource {
-    private static final String PREFIX_URL = "http://www.badm.ru";
 
     private final ArchiveFiles archiveFiles = new ArchiveFiles(new SimpleHttpClient());
 

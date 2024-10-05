@@ -9,30 +9,34 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class ExcelCell {
+public class ExcelCell {
     private final Cell cell;
 
-    ExcelCell(Cell cell) {
+    public ExcelCell(Cell cell) {
         this.cell = cell;
     }
 
-    boolean isFormula() {
+    public int index() {
+        return cell.getColumnIndex();
+    }
+
+    public boolean isFormula() {
         return cell.getCellType().equals(CellType.FORMULA);
     }
 
-    boolean isContainString(String value) {
+    public boolean isContainString(String value) {
         return cell.getCellType().equals(CellType.STRING)
             && cell.getStringCellValue().contains(value);
     }
 
-    boolean isLike(Pattern pattern) {
+    public boolean isLike(Pattern pattern) {
         return cell.getCellType().equals(CellType.STRING)
             && pattern.matcher(
             cell.getStringCellValue()
         ).find();
     }
 
-    List<Integer> getSumRange() {
+    public List<Integer> getSumRange() {
         Matcher m = Pattern.compile("^SUM\\(\\w(\\d+):\\w(\\d+)\\)$").matcher(cell.toString());
         if (m.find()) {
             return Arrays.asList(
@@ -47,30 +51,30 @@ class ExcelCell {
         );
     }
 
-    boolean isNumber() {
+    public boolean isNumber() {
         return !isBlank() && cell.getCellType().equals(CellType.NUMERIC);
     }
 
-    boolean isString() {
+    public boolean isString() {
         return cell.getCellType().equals(CellType.STRING);
     }
 
-    boolean isBlank() {
+    public boolean isBlank() {
         return cell == null || cell.getCellType().equals(CellType.BLANK);
 
     }
 
-    String stringValue() {
+    public String stringValue() {
         return isString()
             ? cell.getStringCellValue()
             : "";
     }
 
-    double numberValue() {
+    public double numberValue() {
         return cell.getNumericCellValue();
     }
 
-    String urlValue() {
+    public String urlValue() {
         Hyperlink hyperlink = cell.getHyperlink();
         return hyperlink == null
             ? null

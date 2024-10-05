@@ -36,8 +36,9 @@ public class LocalStorage {
             for (ArchiveFileExternal externalArchive : source.archiveOverview()) {
                 log.info("Checking for archive at {}", externalArchive.getDate().format(DATE_FORMAT));
                 if (!files.containsKey(externalArchive.getDate())) {
-                    log.info("Downloading {}", externalArchive.getUrl());
-                    try (InputStream fileData = httpClient.downloadFile(externalArchive.getUrl())) {
+                    String encodedUrl = externalArchive.getUrl().replaceAll(" ", "+");
+                    log.info("Downloading {}", encodedUrl);
+                    try (InputStream fileData = httpClient.downloadFile(encodedUrl)) {
                         Path file = saveFile(
                             externalArchive.getDate(),
                             IOUtils.toByteArray(fileData)
@@ -45,7 +46,6 @@ public class LocalStorage {
                         files.put(externalArchive.getDate(), source.archiveFile(file));
                     }
                 }
-                return;
             }
         }
     }

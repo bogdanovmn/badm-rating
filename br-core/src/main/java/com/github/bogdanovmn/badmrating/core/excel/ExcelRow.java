@@ -3,21 +3,23 @@ package com.github.bogdanovmn.badmrating.core.excel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
-class ExcelRow {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ExcelRow {
     private final Row row;
 
-    ExcelRow(Row row) {
-
+    public ExcelRow(Row row) {
         this.row = row;
     }
 
-    ExcelCell cell(int i) {
+    public ExcelCell cell(int i) {
         return new ExcelCell(
             row.getCell(i)
         );
     }
 
-    String cellStringValue(Integer cellNum) {
+    public String cellStringValue(Integer cellNum) {
         ExcelCell cell = new ExcelCell(row.getCell(cellNum));
         return cell.isBlank()
             ? null
@@ -25,18 +27,29 @@ class ExcelRow {
 
     }
 
-    Double cellNumberValue(Integer cellNum) {
+    public Double cellNumberValue(Integer cellNum) {
         ExcelCell cell = new ExcelCell(row.getCell(cellNum));
         return cell.isBlank()
             ? null
             : cell.numberValue();
     }
 
-    String cellUrlValue(Integer cellNum) {
+    public String cellUrlValue(Integer cellNum) {
         ExcelCell cell = new ExcelCell(row.getCell(cellNum));
         return cell.isBlank()
             ? null
             : cell.urlValue();
+    }
+
+    public List<ExcelCell> cells() {
+        List<ExcelCell> result = new ArrayList<>();
+        for (int i = row.getFirstCellNum(); i <= row.getLastCellNum(); i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null) {
+                result.add(new ExcelCell(cell));
+            }
+        }
+        return result;
     }
 
     @Override
@@ -48,9 +61,7 @@ class ExcelRow {
                     "[%d %7s] '%s'\n",
                     cell.getColumnIndex(),
                     cell.getCellType(),
-                    (cell.toString().equals("Фото")
-                        ? cell.getHyperlink().getAddress()
-                        : cell)
+                    cell
                 )
             );
         }
