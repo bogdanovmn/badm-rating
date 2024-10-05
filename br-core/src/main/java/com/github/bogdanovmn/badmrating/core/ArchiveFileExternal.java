@@ -39,7 +39,11 @@ public class ArchiveFileExternal {
             false
         ),
         new DatePattern(
-            Pattern.compile("^.*ranking/(?<year>\\d{4})/rank(ing)?_(?<day>\\d\\d)_(?<month>\\d\\d)\\.xls$", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("^.*ranking/(?<year>\\d{4})/rank(ing|_gp)?_(?<day>\\d\\d)_(?<month>\\d\\d)(\\(\\d+\\))?\\.xls$", Pattern.CASE_INSENSITIVE),
+            false
+        ),
+        new DatePattern(
+            Pattern.compile("^.*/20\\d{2}/rank_(?<day>\\d\\d)_(?<month>\\d\\d)_(?<year>\\d{4})\\.xls$", Pattern.CASE_INSENSITIVE),
             false
         )
     );
