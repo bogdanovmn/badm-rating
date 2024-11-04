@@ -13,6 +13,10 @@ public class ExcelRow {
         this.row = row;
     }
 
+    public int index() {
+        return row.getRowNum();
+    }
+
     public ExcelCell cell(int i) {
         return new ExcelCell(
             row.getCell(i)

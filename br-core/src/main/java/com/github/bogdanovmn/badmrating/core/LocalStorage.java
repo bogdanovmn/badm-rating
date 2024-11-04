@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -81,5 +82,12 @@ public class LocalStorage {
         );
         log.info("Saving to {}", filePath);
         return Files.write(filePath, data);
+    }
+
+    public List<ArchiveFile> history() {
+        return files.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(Map.Entry::getValue)
+            .toList();
     }
 }

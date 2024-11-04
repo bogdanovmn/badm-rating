@@ -5,11 +5,13 @@ import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.PlayType;
 import com.github.bogdanovmn.badmrating.core.excel.ExcelFile;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.OldExcelFormatException;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,33 +20,47 @@ import static com.github.bogdanovmn.badmrating.core.PlayType.UNKNOWN;
 @Slf4j
 public class RnbfArchiveFile extends ArchiveFile {
 
-    private static final Set<String> SHEETS_TO_SKIP = Set.of("Соревнования");
+    private static final Set<String> SHEETS_TO_SKIP = Set.of(
+        "Соревнования",
+        "Соревнование",
+        "Соревнованя",
+        "Пояснение",
+        "Поснения ",
+        "Пояснениу",
+        "Лист1",
+        "Лист10",
+        "Лист11"
+    );
 
     public RnbfArchiveFile(Path path) {
         super(path);
     }
 
     @Override
-    public Set<PersonalRating> content() throws IOException {
-        ExcelFile excel = new ExcelFile(Files.newInputStream(path, StandardOpenOption.READ));
-        log.info(excel.sheets().toString());
+    public Set<PersonalRating> content() {
+        ExcelFile excel;
+        try {
+            excel = new ExcelFile(Files.newInputStream(path, StandardOpenOption.READ));
+        } catch (OldExcelFormatException | IOException ex) {
+            log.warn("File format is not supported: {}", ex.getMessage());
+            return Collections.emptySet();
+        }
+        log.debug(excel.sheets().toString());
         Set<PersonalRating> result = new HashSet<>();
         for (String sheetName : excel.sheets()) {
-            PlayType type = PlayType.of(sheetName);
+            PlayType type = PlayType.of(sheetName.trim());
             if (UNKNOWN == type) {
                 if (!SHEETS_TO_SKIP.contains(sheetName)) {
                     log.warn("Unknown play type: {}, skip it", sheetName);
                 }
                 continue;
             }
-            ResultTable resultTable = new ResultTable(
-                excel.sheetByName(sheetName).iterator(),
-                type
+            result.addAll(
+                new ResultTable(
+                    excel.sheetByName(sheetName),
+                    type
+                ).ratings()
             );
-            PersonalRating personalRating;
-            while ((personalRating = resultTable.nextRecord()) != null) {
-                result.add(personalRating);
-            }
         }
         return result;
     }

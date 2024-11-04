@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Set;
 
 public enum PlayType {
-    MS("МО"), MD("МП"),
-    WS("ЖО"), WD("ЖП"),
-    XD("МС", "ЖС"),
+    MS("МО", "MS"), MD("МП", "MD"),
+    WS("ЖО", "WS"), WD("ЖП", "WD"),
+    XD("МС", "ЖС", "XD(M)", "XD(W)"),
     UNKNOWN;
 
     private final Set<String> possibleTitles;

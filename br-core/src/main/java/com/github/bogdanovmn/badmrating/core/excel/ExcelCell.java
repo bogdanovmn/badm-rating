@@ -67,7 +67,9 @@ public class ExcelCell {
     public String stringValue() {
         return isString()
             ? cell.getStringCellValue()
-            : "";
+            : isNumber()
+                ? String.valueOf(cell.getNumericCellValue())
+                : "";
     }
 
     public double numberValue() {

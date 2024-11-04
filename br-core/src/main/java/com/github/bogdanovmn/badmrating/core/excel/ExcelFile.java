@@ -33,9 +33,9 @@ public class ExcelFile implements Closeable {
     public List<ExcelRow> sheetByName(String name) {
         Sheet sheet = sheets.get(name);
         List<ExcelRow> rows = new ArrayList<>();
-        for (int i = sheet.getFirstRowNum(); i <= sheet.getLastRowNum(); i++) {
-            rows.add(new ExcelRow(sheet.getRow(i)));
-        }
+        sheet.rowIterator().forEachRemaining(
+            r -> rows.add(new ExcelRow(r))
+        );
         return rows;
     }
 

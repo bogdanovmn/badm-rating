@@ -21,6 +21,10 @@ public class ArchiveFileExternalTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) throws Exception {
             return Stream.of(
+                Arguments.of("/files/File/ranking/ranking06122012(1).xls", LocalDate.of(2012, 12, 6)),
+                Arguments.of("/files/File/ranking/spisok06122012(1).xls", LocalDate.of(2012, 12, 6)),
+                Arguments.of("/files/File/ranking/2010_7_2.xls", LocalDate.of(2010, 7, 2)),
+                Arguments.of("/files/File/ranking/2009_12_31.xls", LocalDate.of(2009, 12, 31)),
                 Arguments.of("/files/File/ranking/2011/ranking_15_02.xls", LocalDate.of(2011, 2, 15)),
                 Arguments.of("/files/File/ranking/2011/rank_15_02.xls", LocalDate.of(2011, 2, 15)),
                 Arguments.of("/files/File/ranking/2012/rank_27_04(2).xls", LocalDate.of(2012, 4, 27)),
