@@ -11,10 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,8 +46,8 @@ class ResultTable {
                         .toList())
                 + ")\\s*$",
             "Разряд"),
-        new Head(COLUMN_REGION, "^\\s*\\p{L}{3}\\s*$", "Регион"),
-        new Head(COLUMN_RS, "^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг")
+        new Head(COLUMN_REGION, "^\\s*\\p{L}{3}([\\\\/]\\p{L}{3})?\\s*$", "Регион"),
+        new Head(COLUMN_RS, "^\\s*\\d+(\\.0)?\\s*$", "РС", "PC", "Рейтинг")
     );
 
     private final List<ExcelRow> rows;
@@ -68,8 +68,8 @@ class ResultTable {
         }
     }
 
-    public Set<PersonalRating> ratings() {
-        Set<PersonalRating> result = new HashSet<>();
+    public List<PersonalRating> ratings() {
+        List<PersonalRating> result = new ArrayList<>();
         for (ExcelRow row : rows) {
             log.trace("Row to process:\n{}", row);
             if (isHeadDetected()) {
@@ -145,33 +145,33 @@ class ResultTable {
         if (cells.stream().filter(c -> !c.isBlank()).count() < COLUMNS.size()) {
             return false;
         }
-        if (!isHeadDetected()) {
-            Map<String, Integer> columnIndex = new HashMap<>();
-            for (Head column : COLUMNS) {
-                for (ExcelCell cell : cells) {
-                    if (column.id.equals(COLUMN_RS) && cell.index() <= columnIndex.get(COLUMN_BIRTHDAY)) {
-                        continue;
-                    }
-                    if (column.id.equals(COLUMN_RANK) && cell.index() <= columnIndex.get(COLUMN_NAME)) {
-                        continue;
-                    }
-                    log.trace("Matching '{}' to '{}'", cell.stringValue(), column.valuePattern.pattern());
-                    if (column.valuePattern.matcher(cell.stringValue()).find()) {
-                        columnIndex.put(column.id, cell.index());
-                        log.trace("Matched: {}", column.id);
-                        break;
-                    }
+        Map<String, Integer> columnIndex = new HashMap<>();
+        for (Head column : COLUMNS) {
+            for (ExcelCell cell : cells) {
+                if (column.id.equals(COLUMN_RS) && cell.index() <= columnIndex.get(COLUMN_BIRTHDAY)) {
+                    continue;
                 }
-                if (!columnIndex.containsKey(column.id)) {
-                    log.warn("Can't detect value for {} ({}):\n{}", column.id, playType, row);
-                    return false;
+                if (column.id.equals(COLUMN_RANK) && cell.index() <= columnIndex.get(COLUMN_NAME)) {
+                    continue;
+                }
+                log.trace("Matching '{}' to '{}'", cell.stringValue(), column.valuePattern.pattern());
+                if (column.valuePattern.matcher(cell.stringValue()).find()) {
+                    columnIndex.put(column.id, cell.index());
+                    log.trace("Matched: {}", column.id);
+                    break;
                 }
             }
-            if (columnIndex.size() == COLUMNS.size()) {
+            if (!columnIndex.containsKey(column.id)) {
+                log.warn("Can't detect value for {} ({}):\n{}", column.id, playType, row);
+                return false;
+            }
+        }
+        if (columnIndex.size() == COLUMNS.size()) {
+            if (!isHeadDetected()) {
                 this.columnIndex = columnIndex;
                 log.debug("{} Column index by data row: {}", playType, columnIndex);
-                return true;
             }
+            return true;
         }
         return false;
     }
@@ -188,7 +188,7 @@ class ResultTable {
         }
         if (columnIndex.size() == COLUMNS.size()) {
             this.columnIndex = columnIndex;
-            log.trace("{} Column index: {}", playType, columnIndex);
+            log.debug("{} Column index: {}", playType, columnIndex);
             return true;
         }
         return false;

@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,7 +51,7 @@ public class App {
                     storage.update();
                     ArchiveFile archive = storage.latest().orElseThrow(() -> new NoSuchElementException("Can't find any archive"));
                     System.out.println("Latest archive: " + archive.date());
-                    Set<PersonalRating> ratings = archive.content();
+                    List<PersonalRating> ratings = archive.content();
                     System.out.println("Total parsed ratings: " + ratings.size());
                 } else if (options.enabled(OPT_APPLY)) {
                     LocalStorage storage = new LocalStorage(options.get(OPT_STORAGE_DIR), source);

@@ -11,8 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.github.bogdanovmn.badmrating.core.PlayType.UNKNOWN;
@@ -37,16 +38,19 @@ public class RnbfArchiveFile extends ArchiveFile {
     }
 
     @Override
-    public Set<PersonalRating> content() {
+    public List<PersonalRating> content() {
         ExcelFile excel;
         try {
             excel = new ExcelFile(Files.newInputStream(path, StandardOpenOption.READ));
-        } catch (OldExcelFormatException | IOException ex) {
+        } catch (IOException ex) {
+            log.warn("Open file error: {} ({})", ex.getMessage(), ex.getClass());
+            return Collections.emptyList();
+        } catch (OldExcelFormatException ex) {
             log.warn("File format is not supported: {}", ex.getMessage());
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
         log.debug(excel.sheets().toString());
-        Set<PersonalRating> result = new HashSet<>();
+        List<PersonalRating> result = new ArrayList<>();
         for (String sheetName : excel.sheets()) {
             PlayType type = PlayType.of(sheetName.trim());
             if (UNKNOWN == type) {

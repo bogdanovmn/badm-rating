@@ -6,7 +6,7 @@ import lombok.ToString;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 @RequiredArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
@@ -14,7 +14,7 @@ public abstract class ArchiveFile {
     @ToString.Include
     protected final Path path;
 
-    public abstract Set<PersonalRating> content() throws IOException;
+    public abstract List<PersonalRating> content() throws IOException;
 
     public LocalDate date() {
         return LocalDate.parse(
