@@ -11,7 +11,8 @@ import java.util.Set;
 @Getter
 public enum PlayerRank {
     MS("мс"), KMS("кмс", "кис"), MSMK("мсмк"), ZMS("змс"),
-    R1("1", "1 р"), R2("2", "iiр"), R3("3"),
+    R1("1", "1 р", "iр", "i"), R2("2", "iiр"), R3("3"),
+    U1("iю", "1ю"), U2("iiю", "2ю"), U3("3ю", "iiiю"),
     BR("бр"),
     NO_RANK("");
 

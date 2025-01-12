@@ -37,7 +37,7 @@ public class LocalStorage {
             for (ArchiveFileExternal externalArchive : source.archiveOverview()) {
                 log.info("Checking for archive at {}", externalArchive.getDate().format(DATE_FORMAT));
                 if (!files.containsKey(externalArchive.getDate())) {
-                    String encodedUrl = externalArchive.getUrl().replaceAll(" ", "+");
+                    String encodedUrl = externalArchive.getUrl().replaceAll(" ", "%20");
                     log.info("Downloading {}", encodedUrl);
                     try (InputStream fileData = httpClient.downloadFile(encodedUrl)) {
                         Path file = saveFile(

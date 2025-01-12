@@ -62,7 +62,7 @@ public class ExcelRow {
         for (Cell cell : row) {
             result.append(
                 String.format(
-                    "[%d %7s] '%s'\n",
+                    "[%d %7s] '%s' ",
                     cell.getColumnIndex(),
                     cell.getCellType(),
                     cell
