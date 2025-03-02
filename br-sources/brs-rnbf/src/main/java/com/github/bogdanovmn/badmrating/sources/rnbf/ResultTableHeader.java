@@ -36,7 +36,7 @@ class ResultTableHeader {
             "Разряд"
         ),
         REGION("^\\s*\\p{L}{3}([\\\\/]\\p{L}{3})?\\s*$", "Регион"),
-        SCORE("^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг");
+        SCORE("^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг", "PC");
 
         private final Pattern valuePattern;
         private final Set<String> possibleTitles;

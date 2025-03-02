@@ -5,6 +5,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,9 +22,9 @@ public class FileResource {
         return this.targetClass.getResourceAsStream(fileName);
     }
 
-    public Path path(String fileName) {
+    public Path path(String fileName) throws URISyntaxException {
         return Paths.get(
-            this.targetClass.getResource(fileName).getPath()
+            this.targetClass.getResource(fileName).toURI()
         );
     }
 }
