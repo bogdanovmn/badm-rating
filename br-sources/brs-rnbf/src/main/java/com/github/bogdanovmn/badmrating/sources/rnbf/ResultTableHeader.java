@@ -82,22 +82,22 @@ class ResultTableHeader {
     }
 
     int nameIndex() {
-        return columnIndex.get(Column.NAME);
+        return columnIndex.getOrDefault(Column.NAME, -1);
     }
 
     int birthdayIndex() {
-        return columnIndex.get(Column.BIRTHDAY);
+        return columnIndex.getOrDefault(Column.BIRTHDAY, -1);
     }
 
     int rankIndex() {
-        return columnIndex.get(Column.RANK);
+        return columnIndex.getOrDefault(Column.RANK, -1);
     }
 
     int regionIndex() {
-        return columnIndex.get(Column.REGION);
+        return columnIndex.getOrDefault(Column.REGION, -1);
     }
 
     int scoreIndex() {
-        return columnIndex.get(Column.SCORE);
+        return columnIndex.getOrDefault(Column.SCORE, -1);
     }
 }

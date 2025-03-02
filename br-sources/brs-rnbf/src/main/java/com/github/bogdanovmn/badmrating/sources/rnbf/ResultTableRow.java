@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.BIRTHDAY;
+import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.NAME;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.RANK;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.SCORE;
 
@@ -102,10 +104,12 @@ class ResultTableRow {
         Map<Column, Integer> columnIndex = new HashMap<>();
         for (Column column : Column.values()) {
             for (ExcelCell cell : cells) {
-                if (column == SCORE && cell.index() <= header.birthdayIndex()) {
+                if (column == SCORE
+                    && (!columnIndex.containsKey(BIRTHDAY) || cell.index() <= columnIndex.get(BIRTHDAY))) {
                     continue;
                 }
-                if (column == RANK && cell.index() <= header.nameIndex()) {
+                if (column == RANK
+                    && (!columnIndex.containsKey(NAME) || cell.index() <= columnIndex.get(NAME))) {
                     continue;
                 }
                 log.trace("Matching '{}' to '{}'", cell.stringValue(), column.getValuePattern().pattern());
