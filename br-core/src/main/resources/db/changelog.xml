@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="202503080017-init" author="bogdanovmn">
+
+        <createTable tableName="region">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="short_name" type="varchar"/>
+            <column name="name" type="varchar"/>
+        </createTable>
+
+        <createTable tableName="player">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar"/>
+            <column name="name_fts" type="tsvector"/>
+            <column name="year" type="int"/>
+            <column name="region_id" type="bigint"/>
+            <column name="rank" type="varchar(7)"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="player"
+                baseColumnNames="region_id"
+                constraintName="fk_player_region"
+                referencedTableName="region"
+                referencedColumnNames="id"
+        />
+
+        <createTable tableName="rating">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="player_id" type="bigint"/>
+            <column name="play_type" type="varchar(2)"/>
+            <column name="type" type="varchar"/>
+            <column name="value" type="int"/>
+            <column name="updated_at" type="timestamp"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="rating"
+                baseColumnNames="player_id"
+                constraintName="fk_rating_player"
+                referencedTableName="player"
+                referencedColumnNames="id"
+        />
+    </changeSet>
+
+</databaseChangeLog>
