@@ -16,7 +16,7 @@
         </createTable>
 
         <createTable tableName="player">
-            <column name="id" type="bigint">
+            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="varchar"/>
@@ -37,7 +37,7 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="player_id" type="bigint"/>
+            <column name="player_id" type="UUID"/>
             <column name="play_type" type="varchar(2)"/>
             <column name="type" type="varchar"/>
             <column name="value" type="int"/>
@@ -50,6 +50,17 @@
                 referencedTableName="player"
                 referencedColumnNames="id"
         />
+
+        <createTable tableName="import">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="url" type="varchar"/>
+            <column name="file_date" type="timestamp"/>
+            <column name="started_at" type="timestamp"/>
+            <column name="finished_at" type="timestamp"/>
+            <column name="status" type="varchar"/>
+        </createTable>
     </changeSet>
 
 </databaseChangeLog>

@@ -1,0 +1,7 @@
+spring:
+  application.name: badmrating
+  datasource:
+    url: jdbc:postgresql://hserver:5432/badmrating
+    username: root
+    password: 123
+    driver-class-name: org.postgresql.Driver
