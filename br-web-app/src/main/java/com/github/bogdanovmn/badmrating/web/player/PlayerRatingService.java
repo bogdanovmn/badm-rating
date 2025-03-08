@@ -3,6 +3,7 @@ package com.github.bogdanovmn.badmrating.web.player;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -10,7 +11,7 @@ import java.util.UUID;
 class PlayerRatingService {
     private final PlayerRatingRepository playerRatingRepository;
 
-    PlayerRating playerRatingHistory(UUID playerId) {
+    List<PlayerRating> playerRatingHistory(UUID playerId) {
         return playerRatingRepository.playerRatingHistory(playerId);
     }
 

@@ -21,6 +21,10 @@
             <groupId>com.github.bogdanovmn.jaclin</groupId>
             <artifactId>jaclin</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

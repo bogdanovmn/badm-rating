@@ -68,7 +68,7 @@
     <changeSet id="202503081600-addFullTextSearch" author="bogdanovmn">
         <sql>
             ALTER TABLE player
-            ADD COLUMN name_fts tsvector GENERATED ALWAYS AS (to_tsvector('simple', coalesce(name, '')))
+            ADD COLUMN name_fts tsvector GENERATED ALWAYS AS (to_tsvector('russian', coalesce(name, '')))
             STORED;
             CREATE INDEX ftsi_player_name ON player USING GIN (name_fts);
         </sql>

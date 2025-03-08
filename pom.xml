@@ -95,6 +95,12 @@
                 <groupId>com.github.bogdanovmn.httpclient.simple</groupId>
                 <artifactId>http-client-simple</artifactId>
                 <version>3.1.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.bogdanovmn.common.core</groupId>
@@ -105,10 +111,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

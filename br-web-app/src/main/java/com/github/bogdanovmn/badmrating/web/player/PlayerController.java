@@ -1,21 +1,33 @@
 package com.github.bogdanovmn.badmrating.web.player;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
-@Controller
+@RestController
 @RequestMapping("/player")
 @RequiredArgsConstructor
 class PlayerController {
     private final PlayerRatingService playerRatingService;
+    private final PlayerSearchService playerSearchService;
 
     @GetMapping("{id}")
-    PlayerRating playerRating(@PathVariable("id") UUID playerId) {
+    List<PlayerRating> playerRating(@PathVariable("id") UUID playerId) {
         return playerRatingService.playerRatingHistory(playerId);
+    }
+
+    @GetMapping("search")
+    List<PlayerSearchResult> playerSearch(@RequestParam("term") String term) {
+        if (term.length() > 2) {
+           return playerSearchService.search(term);
+        } else {
+            return List.of();
+        }
     }
 }
