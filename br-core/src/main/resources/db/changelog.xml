@@ -3,9 +3,12 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
 
     <changeSet id="202503080017-init" author="bogdanovmn">
+        <sql>
+            CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+       </sql>
 
         <createTable tableName="region">
             <column name="id" type="bigint">
@@ -16,11 +19,10 @@
         </createTable>
 
         <createTable tableName="player">
-            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="varchar"/>
-            <column name="name_fts" type="tsvector"/>
             <column name="year" type="int"/>
             <column name="region_id" type="bigint"/>
             <column name="rank" type="varchar(7)"/>
@@ -61,6 +63,15 @@
             <column name="finished_at" type="timestamp"/>
             <column name="status" type="varchar"/>
         </createTable>
+    </changeSet>
+
+    <changeSet id="202503081600-addFullTextSearch" author="bogdanovmn">
+        <sql>
+            ALTER TABLE player
+            ADD COLUMN name_fts tsvector GENERATED ALWAYS AS (to_tsvector('simple', coalesce(name, '')))
+            STORED;
+            CREATE INDEX ftsi_player_name ON player USING GIN (name_fts);
+        </sql>
     </changeSet>
 
 </databaseChangeLog>
