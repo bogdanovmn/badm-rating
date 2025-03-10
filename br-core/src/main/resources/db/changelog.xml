@@ -10,11 +10,24 @@
             CREATE EXTENSION IF NOT EXISTS "pgcrypto";
        </sql>
 
-        <createTable tableName="region">
-            <column name="id" type="bigint">
+        <createTable tableName="import">
+            <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="short_name" type="varchar"/>
+            <column name="source" type="varchar"/>
+            <column name="file_date" type="timestamp"/>
+            <column name="started_at" type="timestamp"/>
+            <column name="finished_at" type="timestamp"/>
+            <column name="status" type="varchar"/>
+        </createTable>
+
+        <createTable tableName="region">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="short_name" type="varchar">
+                <constraints nullable="false" unique="true"/>
+            </column>
             <column name="name" type="varchar"/>
         </createTable>
 
@@ -22,11 +35,16 @@
             <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="varchar"/>
-            <column name="year" type="int"/>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year" type="int">
+                <constraints nullable="false"/>
+            </column>
             <column name="region_id" type="bigint"/>
             <column name="rank" type="varchar(7)"/>
         </createTable>
+        <addUniqueConstraint tableName="player" columnNames="name, year"/>
         <addForeignKeyConstraint
                 baseTableName="player"
                 baseColumnNames="region_id"
@@ -36,14 +54,21 @@
         />
 
         <createTable tableName="rating">
-            <column name="id" type="bigint">
+            <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="player_id" type="UUID"/>
-            <column name="play_type" type="varchar(2)"/>
-            <column name="type" type="varchar"/>
-            <column name="value" type="int"/>
-            <column name="updated_at" type="timestamp"/>
+            <column name="player_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="play_type" type="varchar(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="import_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="int">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
         <addForeignKeyConstraint
                 baseTableName="rating"
@@ -52,17 +77,13 @@
                 referencedTableName="player"
                 referencedColumnNames="id"
         />
-
-        <createTable tableName="import">
-            <column name="id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="url" type="varchar"/>
-            <column name="file_date" type="timestamp"/>
-            <column name="started_at" type="timestamp"/>
-            <column name="finished_at" type="timestamp"/>
-            <column name="status" type="varchar"/>
-        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="rating"
+                baseColumnNames="import_id"
+                constraintName="fk_rating_import"
+                referencedTableName="import"
+                referencedColumnNames="id"
+        />
     </changeSet>
 
     <changeSet id="202503081600-addFullTextSearch" author="bogdanovmn">

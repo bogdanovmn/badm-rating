@@ -31,6 +31,10 @@ public class LocalStorage {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String FILE_EXT = "xls";
 
+    public String sourceId() {
+        return source.id();
+    }
+
     public void update() throws IOException {
         init();
         try (SimpleHttpClient httpClient = new SimpleHttpClient()) {
@@ -70,6 +74,7 @@ public class LocalStorage {
                 .collect(
                     Collectors.toMap(ArchiveFile::date, Function.identity())
                 );
+
             log.info("total {} files in the storage", files.size());
         }
     }
@@ -85,7 +90,12 @@ public class LocalStorage {
     }
 
     public List<ArchiveFile> history() {
+        return historyFrom(null);
+    }
+
+    public List<ArchiveFile> historyFrom(LocalDate latestSuccessful) {
         return files.entrySet().stream()
+            .filter(entry -> latestSuccessful == null || entry.getKey().isAfter(latestSuccessful))
             .sorted(Map.Entry.comparingByKey())
             .map(Map.Entry::getValue)
             .toList();

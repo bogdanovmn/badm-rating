@@ -16,13 +16,18 @@ class PlayerRatingRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
     List<PlayerRating> playerRatingHistory(UUID playerId) {
-        return jdbc.query(
-            "SELECT play_type, updated_at, value FROM rating WHERE player_id = :playerId",
+        return jdbc.query("""
+            SELECT r.play_type, i.file_date, r.value
+            FROM rating r
+            JOIN import i ON r.import_id = i.id
+            WHERE r.player_id = :playerId
+            ORDER BY i.file_date
+            """,
             Map.of("playerId", playerId),
             (rs, rowNum) -> PlayerRating.builder()
                 .value(rs.getInt("value"))
                 .playType(PlayType.valueOf(rs.getString("play_type")))
-                .date(rs.getTimestamp("updated_at").toLocalDateTime().toLocalDate())
+                .date(rs.getTimestamp("file_date").toLocalDateTime().toLocalDate())
             .build()
         );
     }

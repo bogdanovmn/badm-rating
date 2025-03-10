@@ -90,7 +90,7 @@ class ResultTableRow {
                     .build()
                 )
                 .type(header.getPlayType())
-                .ratingType(RatingType.RNBFRating)
+                .ratingType(RatingType.RNBF)
                 .value(rating)
             .build()
         );

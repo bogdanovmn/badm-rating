@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.badmrating.web.player;
+package com.github.bogdanovmn.badmrating.web.common.domain;
 
 import com.github.bogdanovmn.badmrating.core.Player;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Value
 @Builder
-class PlayerSearchResult {
+public class PlayerSearchResult {
     UUID id;
     Player details;
 }

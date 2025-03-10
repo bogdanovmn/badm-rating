@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 class ResultTableHeader {
     @Getter
     enum Column {
-        NAME("^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{Lu}\\p{L}+)+\\s*\\.?\\s*$", "ФИО"),
+        NAME("^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО"),
         BIRTHDAY("^\\s*\\d{4}(\\.0)?\\s*$", "Год/р"),
         RANK(
             "^\\s*("
