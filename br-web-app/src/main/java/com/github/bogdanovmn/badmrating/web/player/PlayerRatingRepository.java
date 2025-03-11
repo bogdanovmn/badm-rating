@@ -17,11 +17,28 @@ class PlayerRatingRepository {
 
     List<PlayerRating> playerRatingHistory(UUID playerId) {
         return jdbc.query("""
-            SELECT r.play_type, i.file_date, r.value
-            FROM rating r
-            JOIN import i ON r.import_id = i.id
-            WHERE r.player_id = :playerId
-            ORDER BY i.file_date
+            WITH ranked_ratings AS (
+                SELECT
+                    r.play_type,
+                    i.file_date,
+                    r.value,
+                    LAG(r.value) OVER (PARTITION BY r.play_type ORDER BY i.file_date) AS prev_value,
+                    ROW_NUMBER() OVER (PARTITION BY r.play_type ORDER BY i.file_date) AS rn,
+                    COUNT(*) OVER (PARTITION BY r.play_type) AS total_count
+                FROM rating r
+                JOIN import i ON r.import_id = i.id
+                WHERE r.player_id = :playerId
+            )
+            SELECT
+                play_type,
+                file_date,
+                value
+            FROM ranked_ratings
+            WHERE
+                rn = 1
+                OR rn = total_count
+                OR value != prev_value
+            ORDER BY play_type, file_date;
             """,
             Map.of("playerId", playerId),
             (rs, rowNum) -> PlayerRating.builder()
