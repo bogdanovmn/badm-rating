@@ -2,6 +2,7 @@ package com.github.bogdanovmn.badmrating.web.player;
 
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,8 +13,9 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/player")
+@RequestMapping("/players")
 @RequiredArgsConstructor
+@Slf4j
 class PlayerController {
     private final PlayerRatingService playerRatingService;
     private final PlayerService playerService;
@@ -23,8 +25,9 @@ class PlayerController {
         return playerRatingService.playerRatingHistory(playerId);
     }
 
-    @GetMapping("search")
+    @GetMapping
     List<PlayerSearchResult> playerSearch(@RequestParam("term") String term) {
+        log.debug("Search term '{}'", term);
         if (term.length() > 2) {
            return playerService.search(term);
         } else {
