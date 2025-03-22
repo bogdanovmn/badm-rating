@@ -52,6 +52,10 @@
             <artifactId>postgresql</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.bogdanovmn.badmrating</groupId>
             <artifactId>brs-rnbf</artifactId>
         </dependency>
