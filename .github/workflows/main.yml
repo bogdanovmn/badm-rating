@@ -23,7 +23,7 @@ jobs:
         working-directory: ./
 
       - name: Set variables
-        id: set-vars
+        id: vars
         run: |
           echo "TARGET_DIR=/home/backend/brating" >> $GITHUB_OUTPUT
           echo "TIMESTAMP=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
@@ -37,8 +37,8 @@ jobs:
           username: ${{ secrets.JINOJ_USER }}
           key: ${{ secrets.JINOJ_KEY }}
           source: "br-web-app/target/br-web-app-*.jar,docker/*"
-          target: "${{ steps.set-vars.outputs.TARGET_DIR }}"
-          strip_components: 2
+          target: "${{ steps.vars.outputs.TARGET_DIR }}"
+          strip_components: 1
 
       - name: Create and start container
         uses: appleboy/ssh-action@master
@@ -48,6 +48,7 @@ jobs:
           username: ${{ secrets.JINOJ_USER }}
           key: ${{ secrets.JINOJ_KEY }}
           script: |
-            cd ${{ steps.set-vars.outputs.TARGET_DIR }}
+            cd ${{ steps.vars.outputs.TARGET_DIR }}
+            export BACKEND_VERSION=${{ steps.vars.outputs.BACKEND_VERSION }}
             docker-compose down
             docker-compose up -d --build
