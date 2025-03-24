@@ -26,7 +26,6 @@ jobs:
         id: set-vars
         run: |
           echo "TARGET_DIR=/home/backend/brating" >> $GITHUB_OUTPUT
-          echo "TIMESTAMP=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
           echo "BACKEND_VERSION=${{ github.sha }}-${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Copy files to VPS
@@ -38,7 +37,7 @@ jobs:
           key: ${{ secrets.JINOJ_KEY }}
           source: "br-web-app/target/br-web-app-*.jar,docker/*"
           target: "${{ steps.set-vars.outputs.TARGET_DIR }}"
-          strip_components: 2
+          strip_components: 1
 
       - name: Create and start container
         uses: appleboy/ssh-action@master
