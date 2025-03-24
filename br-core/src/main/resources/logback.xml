@@ -2,25 +2,15 @@
 <configuration>
     <property name="LOG_FILE" value="${SPRING_LOG_FILE:-logs/backend.log}" />
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread, %F:%L] %msg%n" />
-    <property name="OUTPUT" value="${output:-console}" />
+    <property name="OUTPUT" value="${OUTPUT:-console}" />
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-<!--        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">-->
-<!--            <expression>property("OUTPUT").equals("console")</expression>-->
-<!--            <onMatch>NEUTRAL</onMatch>-->
-<!--            <onMismatch>DENY</onMismatch>-->
-<!--        </filter>-->
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-<!--        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">-->
-<!--            <expression>property("OUTPUT").equals("file")</expression>-->
-<!--            <onMatch>NEUTRAL</onMatch>-->
-<!--            <onMismatch>DENY</onMismatch>-->
-<!--        </filter>-->
         <file>${LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>

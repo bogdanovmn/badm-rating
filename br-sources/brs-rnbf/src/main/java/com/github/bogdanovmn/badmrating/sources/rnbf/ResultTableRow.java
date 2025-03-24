@@ -9,7 +9,6 @@ import com.github.bogdanovmn.badmrating.core.excel.ExcelRow;
 import com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Cell;
 
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +105,7 @@ class ResultTableRow {
         }
         if (header.isDetected()) {
             for (Column column : Column.values()) {
-                ExcelCell cell = cells.get(header.index(column));
+                ExcelCell cell = row.cell(header.index(column));
                 if (!column.isOptional() && !isMatched(column, cell)) {
                     log.warn("Can't detect value for {} ({}): {}", column, header.getPlayType(), row);
                     return false;

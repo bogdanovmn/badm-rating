@@ -3,6 +3,7 @@ package com.github.bogdanovmn.badmrating.web.dataimport;
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.Player;
+import com.github.bogdanovmn.badmrating.core.PlayerRank;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRepository;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,7 @@ class DataSyncService {
 
     private boolean shouldUpdatePlayer(Player player, Player persistedPlayer) {
         return persistedPlayer.getRegion() == null && player.getRegion() != null
-            || persistedPlayer.getYear() == null && player.getYear() != null;
+            || persistedPlayer.getYear() == null && player.getYear() != null
+            || persistedPlayer.getRank() == PlayerRank.NO_RANK && player.getRank() != PlayerRank.NO_RANK;
     }
 }
