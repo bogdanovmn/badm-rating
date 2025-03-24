@@ -30,6 +30,10 @@
             <groupId>com.github.bogdanovmn.httpclient.simple</groupId>
             <artifactId>http-client-simple</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

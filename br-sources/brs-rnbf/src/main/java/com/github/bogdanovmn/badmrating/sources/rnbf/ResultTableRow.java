@@ -9,6 +9,7 @@ import com.github.bogdanovmn.badmrating.core.excel.ExcelRow;
 import com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Cell;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,8 +44,17 @@ class ResultTableRow {
             .map(y -> Integer.parseInt(y.replaceFirst("\\.0", "")))
             .orElse(0);
         if (year == 0) {
-            log.warn("Year is not defined for '{}'. Skip record #{}", name, row.index());
-            return Optional.empty();
+            log.trace("Year is not defined for '{}' for record #{}", name, row.index());
+        }
+        String region = Optional.ofNullable(
+                row.cellStringValue(header.regionIndex())
+        ).map(String::trim)
+            .orElseGet(() -> {
+                log.trace("Empty region:\n{}", row);
+                return null;
+            });
+        if (region == null && year == 0) {
+            log.warn("Empty region and year for '{}'. Skip record #{}", name, row.index());
         }
 
         PlayerRank rank = Optional.ofNullable(
@@ -60,13 +70,6 @@ class ResultTableRow {
             }
         }).orElse(PlayerRank.NO_RANK);
 
-        String region = Optional.ofNullable(
-            row.cellStringValue(header.regionIndex())
-        ).map(String::trim)
-            .orElseGet(() -> {
-                log.trace("Empty region:\n" + row);
-                return "";
-            });
 
         int rating = Optional.ofNullable(
             row.cellStringValue(header.scoreIndex())
@@ -74,7 +77,7 @@ class ResultTableRow {
             .map(Integer::parseInt)
             .orElse(0);
         if (rating == 0) {
-            log.trace("Empty rating:\n" + row);
+            log.trace("Empty rating:\n{}", row);
             log.warn("Rating value is not defined for '{}'. Skip record #{}", name, row.index());
             return Optional.empty();
         }
@@ -101,41 +104,52 @@ class ResultTableRow {
         if (cells.stream().filter(c -> !c.isBlank()).count() < Column.values().length) {
             return false;
         }
-        Map<Column, Integer> columnIndex = new HashMap<>();
-        for (Column column : Column.values()) {
-            for (ExcelCell cell : cells) {
-                if (column == SCORE
-                    && (!columnIndex.containsKey(BIRTHDAY) || cell.index() <= columnIndex.get(BIRTHDAY))) {
-                    continue;
+        if (header.isDetected()) {
+            for (Column column : Column.values()) {
+                ExcelCell cell = cells.get(header.index(column));
+                if (!column.isOptional() && !isMatched(column, cell)) {
+                    log.warn("Can't detect value for {} ({}): {}", column, header.getPlayType(), row);
+                    return false;
                 }
-                if (column == RANK
-                    && (!columnIndex.containsKey(NAME) || cell.index() <= columnIndex.get(NAME))) {
-                    continue;
-                }
-                log.trace("Matching '{}' to '{}'", cell.stringValue(), column.getValuePattern().pattern());
-                if (
-                    column.getValuePattern().matcher(
-                        column == RANK
-                            ? cell.stringValue().toLowerCase()
-                            : cell.stringValue()
-                    ).find()
-                ) {
-                    columnIndex.put(column, cell.index());
-                    log.trace("Matched: {}", column);
-                    break;
-                }
-            }
-            if (!columnIndex.containsKey(column)) {
-                log.warn("Can't detect value for {} ({}): {}", column, header.getPlayType(), row);
-                return false;
-            }
-        }
-        if (columnIndex.size() == Column.values().length) {
-            if (!header.isDetected()) {
-                header.updateColumnIndex(columnIndex);
             }
             return true;
+        } else {
+            Map<Column, Integer> columnIndex = new HashMap<>();
+            for (Column column : Column.values()) {
+                for (ExcelCell cell : cells) {
+                    if (column == SCORE
+                        && (!columnIndex.containsKey(BIRTHDAY) || cell.index() <= columnIndex.get(BIRTHDAY))) {
+                        continue;
+                    }
+                    if (column == RANK
+                        && (!columnIndex.containsKey(NAME) || cell.index() <= columnIndex.get(NAME))) {
+                        continue;
+                    }
+                    if (isMatched(column, cell)) {
+                        columnIndex.put(column, cell.index());
+                        log.trace("Matched: {}", column);
+                        break;
+                    }
+                }
+                if (!columnIndex.containsKey(column)) {
+                    log.warn("Can't detect value for {} ({}): {}", column, header.getPlayType(), row);
+                    return false;
+                }
+            }
+            if (columnIndex.size() == Column.values().length) {
+                header.updateColumnIndex(columnIndex);
+                return true;
+            }
         }
         return false;
+    }
+
+    private boolean isMatched(Column column, ExcelCell cell) {
+        log.trace("Matching '{}' to '{}'", cell.stringValue(), column.getValuePattern().pattern());
+        return column.getValuePattern().matcher(
+            column == RANK
+                ? cell.stringValue().toLowerCase()
+                : cell.stringValue()
+        ).find();
     }
 }

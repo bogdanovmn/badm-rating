@@ -10,7 +10,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,7 @@ public class PlayerRepository {
                     .year(rs.getInt("year"))
                     .region(rs.getString("region"))
                     .rank(PlayerRank.valueOf(rs.getString("rank")))
-                    .build()
+                .build()
             ).build();
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -54,32 +53,31 @@ public class PlayerRepository {
         );
     }
 
-    public PlayerSearchResult findByNameAndYear(String name, int year) {
+    public PlayerSearchResult find(Player player) {
         List<PlayerSearchResult> result = jdbc.query("""
-                SELECT p.id, p.name, p.year, r.short_name region, p.rank
-                FROM player p
-                JOIN region r ON r.id = p.region_id
-                WHERE p.name = :name AND p.year = :year
-                """,
-            Map.of("name", name, "year", year),
+            SELECT p.id, p.name, p.year, r.short_name region, p.rank
+            FROM player p
+            LEFT JOIN region r ON r.id = p.region_id
+            WHERE p.name = :name
+            """,
+            Map.of("name", player.getName()),
             PLAYER_SEARCH_RESULT_ROW_MAPPER
         );
         return result.isEmpty() ? null : result.get(0);
     }
 
     public PlayerSearchResult create(Player player) {
-        Long regionId = getRegionId(player.getRegion());
         return jdbc.queryForObject("""
             INSERT INTO player (name, year, region_id, rank)
             VALUES(:name, :year, :regionId, :rank)
             RETURNING id
             """,
-            Map.of(
-                "name", player.getName(),
-                "year", player.getYear(),
-                "regionId", regionId,
-                "rank", player.getRank().toString()
-            ),
+            new MapSqlParameterSource()
+                .addValue("name", player.getName())
+                .addValue("year", player.getYear())
+                .addValue("regionId", getRegionId(player.getRegion()))
+                .addValue("rank", player.getRank().toString()),
+
             (rs, rowNum) -> PlayerSearchResult.builder()
                 .id(UUID.fromString(rs.getString("id")))
                 .details(player)
@@ -88,14 +86,16 @@ public class PlayerRepository {
     }
 
     private Long getRegionId(String region) {
-        return jdbc.queryForObject("""
-            INSERT INTO region (short_name) VALUES (:region)
-            ON CONFLICT (short_name) DO UPDATE SET short_name = EXCLUDED.short_name
-            RETURNING id
-            """,
-            Map.of("region", region),
-            Long.class
-        );
+        return region == null
+            ? null
+            : jdbc.queryForObject("""
+                INSERT INTO region (short_name) VALUES (:region)
+                ON CONFLICT (short_name) DO UPDATE SET short_name = EXCLUDED.short_name
+                RETURNING id
+                """,
+                Map.of("region", region),
+                Long.class
+            );
     }
 
     public void update(UUID playerId, Player details) {
@@ -107,17 +107,16 @@ public class PlayerRepository {
                 rank = :rank
             WHERE id = :playerId
             """,
-            Map.of(
-                "playerId", playerId,
-                "name", details.getName(),
-                "year", details.getYear(),
-                "regionId", getRegionId(details.getRegion()),
-                "rank", details.getRank().toString()
-            )
+            new MapSqlParameterSource()
+                .addValue("playerId", playerId)
+                .addValue("name", details.getName())
+                .addValue("year", details.getYear())
+                .addValue("regionId", getRegionId(details.getRegion()))
+                .addValue("rank", details.getRank().toString())
         );
     }
 
-    public void addRating(Long importId, UUID playerId, LocalDate date, List<PersonalRating> personalRatings) {
+    public void addRating(Long importId, UUID playerId, List<PersonalRating> personalRatings) {
         jdbc.batchUpdate("""
             INSERT INTO rating (player_id, play_type, import_id, value)
             VALUES (:playerId, :playType, :importId, :value)

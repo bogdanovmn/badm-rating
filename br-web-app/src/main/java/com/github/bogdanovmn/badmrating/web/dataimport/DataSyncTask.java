@@ -41,6 +41,7 @@ class DataSyncTask implements ApplicationRunner {
                 importRepository.updateAsFinished(importId, FAILED);
             }
         }
+        log.info("Sync done");
     }
 
     @Override

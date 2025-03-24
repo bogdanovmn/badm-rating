@@ -21,9 +21,10 @@ import java.util.stream.Collectors;
 class ResultTableHeader {
     @Getter
     enum Column {
-        NAME("^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО"),
-        BIRTHDAY("^\\s*\\d{4}(\\.0)?\\s*$", "Год/р"),
+        NAME(false, "^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО"),
+        BIRTHDAY(true, "^\\s*\\d{4}(\\.0)?\\s*$", "Год/р"),
         RANK(
+            true,
             "^\\s*("
                 + String.join(
                 "|",
@@ -35,13 +36,15 @@ class ResultTableHeader {
             + ")\\s*$",
             "Разряд"
         ),
-        REGION("^\\s*\\p{L}{3}([\\\\/]\\p{L}{3})?\\s*$", "Регион"),
-        SCORE("^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг", "PC");
+        REGION(true, "^\\s*\\p{L}{3}([\\\\/]\\p{L}{3})?\\s*$", "Регион"),
+        SCORE(false, "^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг", "PC");
 
+        private final boolean optional;
         private final Pattern valuePattern;
         private final Set<String> possibleTitles;
 
-        Column(String valuePattern, String... possibleTitles) {
+        Column(boolean optional, String valuePattern, String... possibleTitles) {
+            this.optional = optional;
             this.valuePattern = Pattern.compile(valuePattern);
             this.possibleTitles = Arrays.stream(possibleTitles).collect(Collectors.toSet());
         }
@@ -99,5 +102,9 @@ class ResultTableHeader {
 
     int scoreIndex() {
         return columnIndex.getOrDefault(Column.SCORE, -1);
+    }
+
+    int index(Column column) {
+        return columnIndex.getOrDefault(column, -1);
     }
 }

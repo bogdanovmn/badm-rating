@@ -38,13 +38,11 @@
             <column name="name" type="varchar">
                 <constraints nullable="false"/>
             </column>
-            <column name="year" type="int">
-                <constraints nullable="false"/>
-            </column>
+            <column name="year" type="integer"/>
             <column name="region_id" type="bigint"/>
             <column name="rank" type="varchar(7)"/>
         </createTable>
-        <addUniqueConstraint tableName="player" columnNames="name, year"/>
+        <addUniqueConstraint tableName="player" columnNames="name, year, region_id"/>
         <addForeignKeyConstraint
                 baseTableName="player"
                 baseColumnNames="region_id"
@@ -52,6 +50,11 @@
                 referencedTableName="region"
                 referencedColumnNames="id"
         />
+        <sql>
+            ALTER TABLE player
+            ADD CONSTRAINT check_year_or_region_not_null
+            CHECK (year IS NOT NULL OR region_id IS NOT NULL);
+        </sql>
 
         <createTable tableName="rating">
             <column name="id" type="bigint" autoIncrement="true">

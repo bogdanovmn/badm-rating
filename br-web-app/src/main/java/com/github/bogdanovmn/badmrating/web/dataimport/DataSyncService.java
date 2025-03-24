@@ -6,6 +6,7 @@ import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRepository;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 class DataSyncService {
     private final PlayerRepository playerRepository;
 
@@ -33,17 +35,23 @@ class DataSyncService {
         }
         for (Player player : ratingByPlayer.keySet()) {
             UUID playerId = createOrUpdatePlayer(player);
-            playerRepository.addRating(importId, playerId, archiveFile.date(), ratingByPlayer.get(player));
+            playerRepository.addRating(importId, playerId, ratingByPlayer.get(player));
         }
     }
 
     private UUID createOrUpdatePlayer(Player player) {
-        PlayerSearchResult persistedPlayer = playerRepository.findByNameAndYear(player.getName(), player.getYear());
+        PlayerSearchResult persistedPlayer = playerRepository.find(player);
         if (persistedPlayer == null) {
             persistedPlayer = playerRepository.create(player);
-        } else if (!persistedPlayer.getDetails().equals(player)) {
+        } else if (shouldUpdatePlayer(player, persistedPlayer.getDetails())) {
+            log.info("Updating player {} -> {}", persistedPlayer, player);
             playerRepository.update(persistedPlayer.getId(), player);
         }
         return persistedPlayer.getId();
+    }
+
+    private boolean shouldUpdatePlayer(Player player, Player persistedPlayer) {
+        return persistedPlayer.getRegion() == null && player.getRegion() != null
+            || persistedPlayer.getYear() == null && player.getYear() != null;
     }
 }

@@ -1,0 +1,24 @@
+services:
+  br-app:
+    build: .
+    image: brating:${BACKEND_VERSION:-latest}
+    container_name: br-container
+    ports:
+      - "8083:8080"
+    env_file:
+      - .env
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://shared-db:5432/badmrating
+      - SPRING_PROFILES_ACTIVE=prod
+      - OUTPUT=file
+      - JAVA_OPTS=-Dlocal-storage.path=/app/data
+    volumes:
+      - /home/backend/brating/_data:/app/data
+      - /var/log/brating:/app/logs
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    external: true
+    name: docker_shared-network

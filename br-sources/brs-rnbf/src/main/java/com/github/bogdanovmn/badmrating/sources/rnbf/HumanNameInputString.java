@@ -24,6 +24,7 @@ public class HumanNameInputString {
         return input.trim()
             .replaceAll(SPLIT_NAME_PATTERN.pattern(), " ")
             .replaceAll("\\s+", " ")
-            .replaceAll("[*.]", "");
+            .replaceAll("[*.?]", "")
+            .trim();
     }
 }
