@@ -37,12 +37,12 @@ class ResultTableRow {
             return Optional.empty();
         }
 
-        int year = Optional.ofNullable(
+        Integer year = Optional.ofNullable(
             row.cellStringValue(header.birthdayIndex())
         ).map(String::trim)
             .map(y -> Integer.parseInt(y.replaceFirst("\\.0", "")))
-            .orElse(0);
-        if (year == 0) {
+            .orElse(null);
+        if (year == null) {
             log.trace("Year is not defined for '{}' for record #{}", name, row.index());
         }
         String region = Optional.ofNullable(
@@ -52,7 +52,7 @@ class ResultTableRow {
                 log.trace("Empty region:\n{}", row);
                 return null;
             });
-        if (region == null && year == 0) {
+        if (region == null && year == null) {
             log.warn("Empty region and year for '{}'. Skip record #{}", name, row.index());
         }
 

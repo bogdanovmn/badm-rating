@@ -22,23 +22,26 @@ public class App {
     private static final String OPT_OVERVIEW = "overview";
     private static final String OPT_APPLY = "apply";
     private static final String OPT_LATEST = "latest";
+    private static final String OPT_SOURCE = "source";
 
     public static void main(String[] args) throws Exception {
         new CLI("import", "rating history import")
+            .withRequiredOptions()
+                .enumArg(OPT_SOURCE, "rating source", SourceType.class)
             .withOptions()
+                .strArg(OPT_STORAGE_DIR, "local storage directory (for external result files caching)")
                 .flag(OPT_OVERVIEW,      "show archive overview")
                 .flag(OPT_APPLY,         "apply data")
                     .requires(OPT_STORAGE_DIR)
                 .flag(OPT_LATEST,        "show latest results")
                     .requires(OPT_STORAGE_DIR)
-                .strArg(OPT_STORAGE_DIR, "local storage directory (for external result files caching)")
 
             .withRestrictions()
                 .atLeastOneShouldBeUsed(OPT_LATEST, OPT_OVERVIEW, OPT_APPLY)
                 .mutualExclusions(OPT_LATEST, OPT_OVERVIEW, OPT_APPLY)
 
             .withEntryPoint(options -> {
-                RatingSource source = new RussianNationalBadmintonFederation();
+                RatingSource source = ((SourceType) options.getEnum(OPT_SOURCE)).ratingSourceInstance();
                 if (options.enabled(OPT_OVERVIEW)) {
                     source.archiveOverview().stream().collect(
                         Collectors.groupingBy(archive -> archive.getDate().getYear())

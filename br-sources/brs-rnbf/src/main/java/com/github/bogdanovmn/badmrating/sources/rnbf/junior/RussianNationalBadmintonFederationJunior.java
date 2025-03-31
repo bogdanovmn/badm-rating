@@ -1,19 +1,17 @@
-package com.github.bogdanovmn.badmrating.sources.rnbf;
+package com.github.bogdanovmn.badmrating.sources.rnbf.junior;
 
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.ArchiveFileExternal;
 import com.github.bogdanovmn.badmrating.core.RatingSource;
-import com.github.bogdanovmn.httpclient.simple.SimpleHttpClient;
-import lombok.RequiredArgsConstructor;
+import com.github.bogdanovmn.badmrating.sources.rnbf.RnbfArchiveFile;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
 
-@RequiredArgsConstructor
-public class RussianNationalBadmintonFederation implements RatingSource {
+public class RussianNationalBadmintonFederationJunior implements RatingSource {
 
-    private final ArchiveFiles archiveFiles = new ArchiveFiles();
+    private final JuniorArchiveFiles archiveFiles = new JuniorArchiveFiles();
 
     @Override
     public Set<ArchiveFileExternal> archiveOverview() throws IOException {
@@ -22,7 +20,7 @@ public class RussianNationalBadmintonFederation implements RatingSource {
 
     @Override
     public String id() {
-        return "RNBF";
+        return "RNBFJunior";
     }
 
     @Override

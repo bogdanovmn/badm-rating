@@ -56,7 +56,7 @@ public class ArchiveFileExternalTest {
     @ParameterizedTest
     @ArgumentsSource(Args.class)
     public void of(String url, LocalDate expectedDate) {
-        ArchiveFileExternal file = ArchiveFileExternal.of(url);
+        ArchiveFileExternal file = ArchiveFileExternal.of(url, text);
         if (expectedDate == null) {
             assertNull(file);
         } else {
