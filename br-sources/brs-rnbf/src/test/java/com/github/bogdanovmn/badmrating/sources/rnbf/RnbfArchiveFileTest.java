@@ -17,6 +17,16 @@ class RnbfArchiveFileTest {
         assertEquals(1426, content.size());
         List<PersonalRating> rating = byName(content, "Болотова Екатерина");
         assertEquals(3, rating.size());
+        assertEquals(1992, rating.get(0).getPlayer().getYear());
+    }
+
+    @Test
+    void contentJunior() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2024-06-04.xls")).content();
+        assertEquals(7952, content.size());
+        List<PersonalRating> rating = byName(content, "Малый Семен");
+        assertEquals(3, rating.size());
+        assertEquals(2007, rating.get(0).getPlayer().getYear());
     }
 
     @Test

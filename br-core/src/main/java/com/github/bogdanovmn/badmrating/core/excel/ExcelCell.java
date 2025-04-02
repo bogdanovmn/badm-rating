@@ -4,6 +4,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Hyperlink;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -65,15 +66,39 @@ public class ExcelCell {
     }
 
     public String stringValue() {
-        return isString()
-            ? cell.getStringCellValue()
-            : isNumber()
-                ? String.valueOf(cell.getNumericCellValue())
-                : "";
+        if (isString()) {
+            return cell.getStringCellValue().replaceAll("\\p{Zs}+", " ");
+        } else if (isNumber()) {
+            return String.valueOf(cell.getNumericCellValue());
+        } else if (isFormula()) {
+            try {
+                return String.valueOf(cell.getNumericCellValue());
+            } catch (IllegalStateException e) {
+                return cell.getStringCellValue();
+            }
+        } else {
+            return "";
+        }
     }
 
     public double numberValue() {
         return cell.getNumericCellValue();
+    }
+
+    public LocalDateTime dateValue() {
+        if (isNumber()) {
+            double year = cell.getNumericCellValue();
+            if (year <= 2999) {
+                return LocalDateTime.of((int) year, 1, 1, 0, 0);
+            } else {
+                try {
+                    return cell.getLocalDateTimeCellValue();
+                } catch (IllegalStateException e) {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 
     public String urlValue() {

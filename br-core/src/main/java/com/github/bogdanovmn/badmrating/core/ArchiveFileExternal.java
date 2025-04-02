@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -69,17 +68,17 @@ public class ArchiveFileExternal {
 
     private static final List<TitleDatePattern> TITLE_DATES = List.of(
         new TitleDatePattern(
-            Pattern.compile("^.*\\D?(?<date>([1-9]|[12]\\d|3[01])\\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\\s+\\d{4}).*$", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("^.*?(?<date>([12]?\\d|3[01])\\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\\s+\\d{4}).*$", Pattern.CASE_INSENSITIVE),
             "d MMMM yyyy",
             true
         ),
         new TitleDatePattern(
-            Pattern.compile("^.*?\\D?(?<date>\\d{1,2}\\.\\d{1,2}\\.\\d{4}).*$"),
+            Pattern.compile("^.*?(?<date>\\d{1,2}\\.\\d{1,2}\\.\\d{4}).*$"),
             "dd.MM.yyyy",
             true
         ),
         new TitleDatePattern(
-            Pattern.compile("^.*(?<date>([1-9]|[12]\\d|3[01])\\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)).*$", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("^.*?(?<date>([12]?\\d|3[01])\\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)).*$", Pattern.CASE_INSENSITIVE),
             "d MMMM yyyy",
             false
         )

@@ -10,6 +10,7 @@ import com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +39,8 @@ class ResultTableRow {
         }
 
         Integer year = Optional.ofNullable(
-            row.cellStringValue(header.birthdayIndex())
-        ).map(String::trim)
-            .map(y -> Integer.parseInt(y.replaceFirst("\\.0", "")))
+            row.cellDateValue(header.birthdayIndex())
+        ).map(LocalDateTime::getYear)
             .orElse(null);
         if (year == null) {
             log.trace("Year is not defined for '{}' for record #{}", name, row.index());
@@ -70,14 +70,17 @@ class ResultTableRow {
         }).orElse(PlayerRank.NO_RANK);
 
 
-        int rating = Optional.ofNullable(
+        Integer rating = Optional.ofNullable(
             row.cellStringValue(header.scoreIndex())
         ).map(r -> r.trim().replaceFirst("\\.0", ""))
             .map(Integer::parseInt)
-            .orElse(0);
-        if (rating == 0) {
-            log.trace("Empty rating:\n{}", row);
+            .orElse(null);
+        if (rating == null) {
             log.warn("Rating value is not defined for '{}'. Skip record #{}", name, row.index());
+            return Optional.empty();
+        }
+        if (rating == 0) {
+            log.debug("Rating value for '{}' is 0. Skip record #{}", name, row.index());
             return Optional.empty();
         }
 
@@ -131,7 +134,7 @@ class ResultTableRow {
                     }
                 }
                 if (!columnIndex.containsKey(column)) {
-                    log.warn("Can't detect value for {} ({}): {}", column, header.getPlayType(), row);
+                    log.debug("Can't detect value for {} ({}): {}", column, header.getPlayType(), row);
                     return false;
                 }
             }

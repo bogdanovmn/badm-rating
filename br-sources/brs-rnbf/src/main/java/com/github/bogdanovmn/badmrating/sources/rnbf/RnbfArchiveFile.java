@@ -30,7 +30,8 @@ public class RnbfArchiveFile extends ArchiveFile {
         "Пояснениу",
         "Лист1",
         "Лист10",
-        "Лист11"
+        "Лист11",
+        "Информация"
     );
 
     public RnbfArchiveFile(Path path) {

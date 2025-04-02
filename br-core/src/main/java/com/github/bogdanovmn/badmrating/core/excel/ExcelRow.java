@@ -3,6 +3,7 @@ package com.github.bogdanovmn.badmrating.core.excel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,13 @@ public class ExcelRow {
         return cell.isBlank()
             ? null
             : cell.stringValue();
+    }
 
+    public LocalDateTime cellDateValue(Integer cellNum) {
+        ExcelCell cell = new ExcelCell(row.getCell(cellNum));
+        return cell.isBlank()
+            ? null
+            : cell.dateValue();
     }
 
     public Double cellNumberValue(Integer cellNum) {
@@ -65,7 +72,7 @@ public class ExcelRow {
                     "[%d %7s] '%s' ",
                     cell.getColumnIndex(),
                     cell.getCellType(),
-                    cell
+                    new ExcelCell(cell).stringValue()
                 )
             );
         }

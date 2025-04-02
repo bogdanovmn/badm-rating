@@ -6,7 +6,6 @@ import com.github.bogdanovmn.badmrating.core.excel.ExcelCell;
 import com.github.bogdanovmn.badmrating.core.excel.ExcelRow;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -21,8 +20,8 @@ import java.util.stream.Collectors;
 class ResultTableHeader {
     @Getter
     enum Column {
-        NAME(false, "^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО"),
-        BIRTHDAY(true, "^\\s*\\d{4}(\\.0)?\\s*$", "Год/р"),
+        NAME(false, "^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО", "Спортсмен"),
+        BIRTHDAY(true, "^\\s*\\d{4}(\\.0)?\\s*$", "Год/р", "Дата рождения"),
         RANK(
             true,
             "^\\s*("
@@ -34,7 +33,7 @@ class ResultTableHeader {
             .map(rankTitle -> rankTitle + "(\\.0)?")
             .toList())
             + ")\\s*$",
-            "Разряд"
+            "Разряд", "Звание/разряд"
         ),
         REGION(true, "^\\s*\\p{L}{3}([\\\\/]\\p{L}{3})?\\s*$", "Регион"),
         SCORE(false, "^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг", "PC");

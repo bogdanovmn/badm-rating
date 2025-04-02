@@ -12,8 +12,9 @@ import java.util.Set;
 public enum PlayerRank {
     MS("мс"), KMS("кмс", "кис"), MSMK("мсмк"), ZMS("змс"),
     R1("1", "1 р", "iр", "i"), R2("2", "iiр"), R3("3"),
-    U1("iю", "1ю"), U2("iiю", "2ю"), U3("3ю", "iiiю"),
-    BR("бр"),
+    U1("iю", "1ю", "1 юн.", "1 юн"), U2("iiю", "2ю", "2 юн.", "2 юн"), U3("3ю", "iiiю", "3 юн.", "3 юн"),
+    BR("бр", "б/р", "б\\р"),
+    BZ("бз", "б/з", "б\\з"),
     NO_RANK("");
 
     private final Set<String> possibleTitles;
