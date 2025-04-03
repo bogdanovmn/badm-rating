@@ -22,16 +22,18 @@ public class ExcelCell {
     }
 
     public boolean isFormula() {
-        return cell.getCellType().equals(CellType.FORMULA);
+        return !isBlank() && cell.getCellType().equals(CellType.FORMULA);
     }
 
     public boolean isContainString(String value) {
-        return cell.getCellType().equals(CellType.STRING)
+        return !isBlank()
+            && cell.getCellType().equals(CellType.STRING)
             && cell.getStringCellValue().contains(value);
     }
 
     public boolean isLike(Pattern pattern) {
-        return cell.getCellType().equals(CellType.STRING)
+        return !isBlank()
+            && cell.getCellType().equals(CellType.STRING)
             && pattern.matcher(
             cell.getStringCellValue()
         ).find();
@@ -57,7 +59,7 @@ public class ExcelCell {
     }
 
     public boolean isString() {
-        return cell.getCellType().equals(CellType.STRING);
+        return !isBlank() && cell.getCellType().equals(CellType.STRING);
     }
 
     public boolean isBlank() {
@@ -67,7 +69,7 @@ public class ExcelCell {
 
     public String stringValue() {
         if (isString()) {
-            return cell.getStringCellValue().replaceAll("\\p{Zs}+", " ");
+            return cell.getStringCellValue().replaceAll("\\p{Zs}+", " ").trim();
         } else if (isNumber()) {
             return String.valueOf(cell.getNumericCellValue());
         } else if (isFormula()) {

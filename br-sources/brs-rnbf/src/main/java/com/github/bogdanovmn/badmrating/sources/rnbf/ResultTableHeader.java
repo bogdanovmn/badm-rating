@@ -20,23 +20,23 @@ import java.util.stream.Collectors;
 class ResultTableHeader {
     @Getter
     enum Column {
-        NAME(false, "^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО", "Спортсмен"),
-        BIRTHDAY(true, "^\\s*\\d{4}(\\.0)?\\s*$", "Год/р", "Дата рождения"),
+        NAME(false, "^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО", "Спортсмен", "Фамилия, имя"),
+        BIRTHDAY(true, "^\\s*\\d{4}(\\.0)?\\s*$", "Год/р", "Дата рождения", "Год рождения"),
         RANK(
             true,
             "^\\s*("
                 + String.join(
                 "|",
-            Arrays.stream(PlayerRank.values())
-            .filter(pr -> pr != PlayerRank.NO_RANK)
-            .flatMap(pr -> pr.getPossibleTitles().stream())
-            .map(rankTitle -> rankTitle + "(\\.0)?")
-            .toList())
+                Arrays.stream(PlayerRank.values())
+                    .filter(pr -> pr != PlayerRank.NO_RANK)
+                    .flatMap(pr -> pr.getPossibleTitles().stream())
+                    .map(rankTitle -> rankTitle + "(\\.0)?")
+                    .toList())
             + ")\\s*$",
             "Разряд", "Звание/разряд"
         ),
         REGION(true, "^\\s*\\p{L}{3}([\\\\/]\\p{L}{3})?\\s*$", "Регион"),
-        SCORE(false, "^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг", "PC");
+        SCORE(false, "^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг", "PC", "Рейтинг на", "Сумма очков", "сумма", "Расчетный рейтиг");
 
         private final boolean optional;
         private final Pattern valuePattern;
@@ -46,6 +46,12 @@ class ResultTableHeader {
             this.optional = optional;
             this.valuePattern = Pattern.compile(valuePattern);
             this.possibleTitles = Arrays.stream(possibleTitles).collect(Collectors.toSet());
+        }
+
+        static Set<Column> required() {
+            return Arrays.stream(Column.values())
+                .filter(c -> !c.isOptional())
+                .collect(Collectors.toSet());
         }
     }
 
@@ -69,9 +75,17 @@ class ResultTableHeader {
                     columnIndex.put(column, cell.index());
                     break;
                 }
+                if (column == Column.SCORE) {
+                    for (String title : column.possibleTitles) {
+                        if (cell.stringValue().startsWith(title)) {
+                            columnIndex.put(column, cell.index());
+                            break;
+                        }
+                    }
+                }
             }
         }
-        if (columnIndex.size() == Column.values().length) {
+        if (columnIndex.keySet().containsAll(Column.required())) {
             this.columnIndex = columnIndex;
             log.trace("Column index: {}", columnIndex);
             return true;

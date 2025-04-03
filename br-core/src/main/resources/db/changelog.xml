@@ -20,6 +20,7 @@
             <column name="finished_at" type="timestamp"/>
             <column name="status" type="varchar"/>
         </createTable>
+        <addUniqueConstraint tableName="import" columnNames="file_date, source"/>
 
         <createTable tableName="region">
             <column name="id" type="bigint" autoIncrement="true">

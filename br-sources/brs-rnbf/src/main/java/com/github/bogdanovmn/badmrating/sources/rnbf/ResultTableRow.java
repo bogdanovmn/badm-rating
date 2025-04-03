@@ -110,7 +110,7 @@ class ResultTableRow {
             for (Column column : Column.values()) {
                 ExcelCell cell = row.cell(header.index(column));
                 if (!column.isOptional() && !isMatched(column, cell)) {
-                    log.warn("Can't detect value for {} ({}): {}", column, header.getPlayType(), row);
+                    log.warn("Can't detect value for {} ({}): #{} {}", column, header.getPlayType(), row.index(), row);
                     return false;
                 }
             }

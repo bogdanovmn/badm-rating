@@ -21,6 +21,7 @@ class PlayerRatingRepository {
                 SELECT
                     r.play_type,
                     i.file_date,
+                    i.source,
                     r.value,
                     LAG(r.value) OVER (PARTITION BY r.play_type ORDER BY i.file_date) AS prev_value,
                     ROW_NUMBER() OVER (PARTITION BY r.play_type ORDER BY i.file_date) AS rn,
@@ -32,6 +33,7 @@ class PlayerRatingRepository {
             SELECT
                 play_type,
                 file_date,
+                source,
                 value
             FROM ranked_ratings
             WHERE

@@ -4,7 +4,6 @@ import com.github.bogdanovmn.badmrating.core.ArchiveFileExternal;
 import com.github.bogdanovmn.badmrating.sources.rnbf.HtmlDocument;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.jsoup.select.NodeFilter;
 
 import java.io.IOException;
 import java.util.Collections;

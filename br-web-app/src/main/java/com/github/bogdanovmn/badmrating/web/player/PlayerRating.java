@@ -12,4 +12,5 @@ class PlayerRating {
     int value;
     PlayType playType;
     LocalDate date;
+    String source;
 }
