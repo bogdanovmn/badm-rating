@@ -62,12 +62,18 @@ public class RnbfArchiveFile extends ArchiveFile {
                 }
                 continue;
             }
-            result.addAll(
-                new ResultTable(
-                    excel.sheetByName(sheetName),
-                    type
-                ).ratings()
-            );
+            try {
+                log.info("Processing sheet '{}'", sheetName.trim());
+                result.addAll(
+                    new ResultTable(
+                        excel.sheetByName(sheetName),
+                        type
+                    ).ratings()
+                );
+            } catch (Exception ex) {
+                log.error("Parse file {} [sheet {}] error: {}", path.getFileName(), sheetName, ex.getMessage());
+                throw ex;
+            }
         }
         return result;
     }

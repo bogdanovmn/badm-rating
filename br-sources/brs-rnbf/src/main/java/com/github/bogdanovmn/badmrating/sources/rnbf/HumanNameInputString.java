@@ -23,6 +23,7 @@ public class HumanNameInputString {
     public String normalized() {
         return input.trim()
             .replaceAll(SPLIT_NAME_PATTERN.pattern(), " ")
+            .replaceAll("\\d+$", "")
             .replaceAll("\\s+", " ")
             .replaceAll("[*.?]", "")
             .trim();

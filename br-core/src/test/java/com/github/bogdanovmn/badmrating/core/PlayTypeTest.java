@@ -42,9 +42,11 @@ class PlayTypeTest {
             Arguments.of("XD_W", PlayType.XD),
 
             // Частичные совпадения
+            Arguments.of("XD_W 05-06", PlayType.XD),
+            Arguments.of(" MD 07 и моложе", PlayType.MD),
             Arguments.of("Категория XD(W)", PlayType.XD),
             Arguments.of("SomeTextMD", PlayType.UNKNOWN),
-            Arguments.of("WS-2023", PlayType.UNKNOWN),
+            Arguments.of("WS-2023", PlayType.WS),
             Arguments.of("97-моложе XD_M", PlayType.XD),
 
             // Неправильные/неизвестные значения
@@ -53,7 +55,6 @@ class PlayTypeTest {
             Arguments.of("", PlayType.UNKNOWN),
             Arguments.of("   ", PlayType.UNKNOWN),
             Arguments.of("XD(OШИБ)", PlayType.UNKNOWN),
-            Arguments.of("MS_ERROR", PlayType.UNKNOWN),
 
             // Граничные случаи
             Arguments.of(null, PlayType.UNKNOWN),

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 class ResultTableHeader {
     @Getter
     enum Column {
-        NAME(false, "^\\s*\\p{Lu}\\p{L}+\\*?((\\s*|-)\\p{L}\\p{L}+)+\\s*\\.?\\s*$", "ФИО", "Спортсмен", "Фамилия, имя"),
+        NAME(false, "^\\s*\\p{L}\\p{L}+(?:[*-])?(?:\\s*\\(\\p{L}\\p{L}+\\))?(?:(?:\\s+|-|\\p{Ll}\\p{Lu})\\p{L}\\p{L}*(?:[*-])?)*(?:\\s+\\p{L}\\.\\s*\\p{L}\\.)?(?:\\s*\\p{L}\\.)?(?:\\s*\\?.*)?\\s*\\d*\\s*$", "ФИО", "Спортсмен", "Фамилия, имя"),
         BIRTHDAY(true, "^\\s*\\d{4}(\\.0)?\\s*$", "Год/р", "Дата рождения", "Год рождения"),
         RANK(
             true,
@@ -36,7 +36,24 @@ class ResultTableHeader {
             "Разряд", "Звание/разряд"
         ),
         REGION(true, "^\\s*\\p{L}{3}([\\\\/]\\p{L}{3})?\\s*$", "Регион"),
-        SCORE(false, "^\\s*\\d+(\\.0)?\\s*$", "РС", "Рейтинг", "PC", "Рейтинг на", "Сумма очков", "сумма", "Расчетный рейтиг");
+        SCORE(
+            false,
+            "^\\s*\\d+(\\.\\d+)?\\s*$",
+            "РС",
+            "PC", // другие символы!
+            "Суммарный",
+            "Рейтинг",
+            "Рейтиг",
+            "Рейтинг на",
+            "Сумма очков",
+            "сумма",
+            "Расчетный рейтиг",
+            "Расчетный рейтинг",
+            "Рейтинг для России",
+            "Текущий рейтинг",
+            "Начальный рейтинг",
+            "Промежуточный рейтинг"
+        );
 
         private final boolean optional;
         private final Pattern valuePattern;
@@ -88,6 +105,12 @@ class ResultTableHeader {
         if (columnIndex.keySet().containsAll(Column.required())) {
             this.columnIndex = columnIndex;
             log.trace("Column index: {}", columnIndex);
+            Set<Column> skippedColumns = Arrays.stream(Column.values())
+                .filter(c -> !columnIndex.containsKey(c))
+                .collect(Collectors.toSet());
+            if (!skippedColumns.isEmpty()) {
+                log.warn("Some columns skipped: {}", skippedColumns);
+            }
             return true;
         }
         return false;

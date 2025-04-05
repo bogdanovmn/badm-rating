@@ -18,7 +18,7 @@ public enum PlayType {
         this.possibleTitles = new HashSet<>(List.of(possibleTitles));
         this.patterns = new HashSet<>();
         for (String title : possibleTitles) {
-            String regex = "\\P{L}" + Pattern.quote(title) + "(\\P{L}|$)";
+            String regex = "(^|\\P{L})" + Pattern.quote(title) + "(\\P{L}|$)";
             patterns.add(Pattern.compile(regex, Pattern.CASE_INSENSITIVE));
         }
     }
