@@ -6,7 +6,6 @@ import org.apache.poi.ss.usermodel.Row;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class ExcelRow {
     private final Row row;
