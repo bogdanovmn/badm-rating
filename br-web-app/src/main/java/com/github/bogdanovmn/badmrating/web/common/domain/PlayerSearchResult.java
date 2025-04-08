@@ -10,5 +10,6 @@ import java.util.UUID;
 @Builder
 public class PlayerSearchResult {
     UUID id;
+    long importId;
     Player details;
 }

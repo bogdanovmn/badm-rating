@@ -20,28 +20,32 @@ import static com.github.bogdanovmn.badmrating.web.dataimport.ImportRepository.S
 @Component
 @RequiredArgsConstructor
 class DataSyncTask implements ApplicationRunner {
-    private final LocalStorage localStorage;
+    private final List<LocalStorage> localStorage;
     private final ImportRepository importRepository;
     private final DataSyncService dataSyncService;
 
     @Scheduled(cron = "0 0 0 * * *")
     void sync() throws IOException {
-        log.info("Syncing...");
-        localStorage.update();
-        LocalDate latestSuccessful = importRepository.latestSuccessful();
-        List<ArchiveFile> files = localStorage.historyFrom(latestSuccessful);
-        for (ArchiveFile archiveFile : files) {
-            log.info("Processing file: {}", archiveFile);
-            Long importId = importRepository.create(localStorage.sourceId(), archiveFile);
-            try {
-                dataSyncService.processFile(importId, archiveFile);
-                importRepository.updateAsFinished(importId, SUCCESS);
-            } catch (Exception e) {
-                log.error("Error processing file: {}", archiveFile, e);
-                importRepository.updateAsFinished(importId, FAILED);
+        for (LocalStorage storage : localStorage) {
+            log.info("Syncing {}...", storage.sourceId());
+            storage.update();
+            LocalDate latestSuccessful = importRepository.latestSuccessful(storage.sourceId());
+            List<ArchiveFile> files = storage.historyFrom(latestSuccessful);
+            int precessed = 0;
+            for (ArchiveFile archiveFile : files) {
+                log.info("Processing file: {}", archiveFile);
+                Long importId = importRepository.create(storage.sourceId(), archiveFile, storage.fileExternalUrl(archiveFile));
+                try {
+                    dataSyncService.processFile(importId, archiveFile);
+                    importRepository.updateAsFinished(importId, SUCCESS);
+                    precessed++;
+                } catch (Exception e) {
+                    log.error("Error processing file: {}", archiveFile, e);
+                    importRepository.updateAsFinished(importId, FAILED);
+                }
             }
+            log.info("{} Sync done. Processed {} files. Errors: {}", storage.sourceId(), precessed, files.size() - precessed);
         }
-        log.info("Sync done");
     }
 
     @Override

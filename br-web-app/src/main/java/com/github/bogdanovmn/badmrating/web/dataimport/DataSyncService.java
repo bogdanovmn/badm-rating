@@ -3,7 +3,6 @@ package com.github.bogdanovmn.badmrating.web.dataimport;
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.Player;
-import com.github.bogdanovmn.badmrating.core.PlayerRank;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRepository;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -24,7 +24,7 @@ import java.util.UUID;
 class DataSyncService {
     private final PlayerRepository playerRepository;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void processFile(Long importId, ArchiveFile archiveFile) throws IOException {
         Map<Player, List<PersonalRating>> ratingByPlayer = new HashMap<>();
         for (PersonalRating rating : archiveFile.content()) {
@@ -34,26 +34,35 @@ class DataSyncService {
                 ratingByPlayer.put(rating.getPlayer(), new ArrayList<>() {{ add(rating); }});
             }
         }
+        int playersCount = 0;
+        int ratesCount = 0;
         for (Player player : ratingByPlayer.keySet()) {
-            UUID playerId = createOrUpdatePlayer(player);
+            UUID playerId = createOrUpdatePlayer(importId, player);
             playerRepository.addRating(importId, playerId, ratingByPlayer.get(player));
+            playersCount++;
+            ratesCount += ratingByPlayer.get(player).size();
+        }
+        log.info("Imported {} players and {} rates", playersCount, ratesCount);
+    }
+
+    private UUID createOrUpdatePlayer(Long importId, Player player) {
+        Optional<PlayerSearchResult> persistedPlayer = playerRepository.find(player);
+        if (persistedPlayer.isEmpty()) {
+            return playerRepository.create(importId, player).getId();
+        } else {
+            PlayerSearchResult persisted = persistedPlayer.get();
+            if (shouldUpdatePlayer(player, persisted.getDetails())) {
+                log.debug("Updating player {} -> {}", persisted, player);
+                playerRepository.savePreviousDetails(persisted);
+                playerRepository.update(importId, persisted.getId(), player);
+            }
+            return persisted.getId();
         }
     }
 
-    private UUID createOrUpdatePlayer(Player player) {
-        PlayerSearchResult persistedPlayer = playerRepository.find(player);
-        if (persistedPlayer == null) {
-            persistedPlayer = playerRepository.create(player);
-        } else if (shouldUpdatePlayer(player, persistedPlayer.getDetails())) {
-            log.info("Updating player {} -> {}", persistedPlayer, player);
-            playerRepository.update(persistedPlayer.getId(), player);
-        }
-        return persistedPlayer.getId();
-    }
-
-    private boolean shouldUpdatePlayer(Player player, Player persistedPlayer) {
-        return persistedPlayer.getRegion() == null && player.getRegion() != null
-            || persistedPlayer.getYear() == null && player.getYear() != null
-            || persistedPlayer.getRank() == PlayerRank.NO_RANK && player.getRank() != PlayerRank.NO_RANK;
+    private boolean shouldUpdatePlayer(Player player, Player persisted) {
+        return player.getRegion() != null && !player.getRegion().equals(persisted.getRegion())
+            || player.getYear() != null && !player.getYear().equals(persisted.getYear())
+            || player.getRank() != null && !player.getRank().equals(persisted.getRank());
     }
 }

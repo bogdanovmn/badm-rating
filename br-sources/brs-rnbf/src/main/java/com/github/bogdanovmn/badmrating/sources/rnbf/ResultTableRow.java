@@ -41,7 +41,12 @@ class ResultTableRow {
         Integer year = Optional.ofNullable(
             row.cellDateValue(header.birthdayIndex())
         ).map(LocalDateTime::getYear)
-            .orElse(null);
+            .orElseGet(
+                () -> Optional.ofNullable(
+                    row.cellStringValue(header.birthdayIndex())
+                ).map(y -> Integer.parseInt(y.trim().replaceFirst("!", "1")))
+                    .orElse(null)
+            );
         if (year == null) {
             log.trace("Year is not defined for '{}' for record #{}", name, row.index());
         }
@@ -54,6 +59,7 @@ class ResultTableRow {
             });
         if (region == null && year == null) {
             log.warn("Empty region and year for '{}'. Skip record #{}", name, row.index());
+            return Optional.empty();
         }
 
         PlayerRank rank = Optional.ofNullable(
