@@ -10,8 +10,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -60,26 +58,17 @@ public class PlayerRepository {
     }
 
     public Optional<PlayerSearchResult> find(Player player) {
-        List<PlayerSearchResult> foundPlayers = jdbc.query("""
-                SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
-                FROM player p
-                LEFT JOIN region r ON r.id = p.region_id
-                WHERE p.name = :name
-                """,
+        return jdbc.query("""
+            SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
+            FROM player p
+            LEFT JOIN region r ON r.id = p.region_id
+            WHERE p.name = :name
+            """,
             Map.of("name", player.getName()),
             PLAYER_SEARCH_RESULT_ROW_MAPPER
-        );
-//        boolean debug = player.getName().equals("Антипова Евгения");
-//        if (debug) {
-//            log.error("Found players: {}", foundPlayers);
-//        }
-        Optional<PlayerSearchResult> result = foundPlayers.stream().filter(
+        ).stream().filter(
             p -> p.getDetails().equals(player)
         ).findFirst();
-//        if (debug) {
-//            log.error("Filtered player: {}", result.orElse(null));
-//        }
-        return result;
     }
 
     public PlayerSearchResult create(Long importId, Player player) {
