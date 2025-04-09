@@ -110,7 +110,7 @@
             <column name="import_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="value" type="int">
+            <column name="value" type="bigint">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -128,6 +128,11 @@
                 referencedTableName="import"
                 referencedColumnNames="id"
         />
+        <sql>
+            ALTER TABLE rating
+            ADD CONSTRAINT check_play_type_valid
+            CHECK (play_type IN ('MS', 'MD', 'WS', 'WD', 'XD'));
+        </sql>
     </changeSet>
 
     <changeSet id="202503081600-addFullTextSearch" author="bogdanovmn">
@@ -139,4 +144,14 @@
         </sql>
     </changeSet>
 
+    <changeSet id="202504081900-addRatingIndex" author="bogdanovmn">
+        <createIndex tableName="rating" indexName="i_rating__player_import_ptype">
+            <column name="player_id"/>
+            <column name="import_id"/>
+            <column name="play_type"/>
+        </createIndex>
+        <createIndex tableName="import" indexName="i_import__fdate">
+            <column name="file_date"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

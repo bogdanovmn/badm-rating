@@ -19,6 +19,7 @@ import java.util.Optional;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.BIRTHDAY;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.NAME;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.RANK;
+import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.REGION;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.SCORE;
 
 @RequiredArgsConstructor
@@ -44,15 +45,21 @@ class ResultTableRow {
             .orElseGet(
                 () -> Optional.ofNullable(
                     row.cellStringValue(header.birthdayIndex())
-                ).map(y -> Integer.parseInt(y.trim().replaceFirst("!", "1")))
-                    .orElse(null)
+                ).map(y -> {
+                    try {
+                        return Integer.parseInt(y.trim().replaceFirst("!", "1"));
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                }).orElse(null)
             );
         if (year == null) {
             log.trace("Year is not defined for '{}' for record #{}", name, row.index());
         }
         String region = Optional.ofNullable(
-                row.cellStringValue(header.regionIndex())
+            row.cellStringValue(header.regionIndex())
         ).map(String::trim)
+            .filter(r -> isMatched(REGION, r))
             .orElseGet(() -> {
                 log.trace("Empty region:\n{}", row);
                 return null;
@@ -116,7 +123,7 @@ class ResultTableRow {
                 ExcelCell cell = row.cell(header.index(column));
                 String value = cell.stringValue();
                 if (!column.isOptional() && !isMatched(column, value)) {
-                    log.warn("Value for {} (row#{}) is not matched: '{}'", column, row.index(), value);
+                    log.warn("Value for {} ({}#row#{}) is not matched: '{}'", column, header.getPlayType(), row.index(), value);
                     return false;
                 }
             }

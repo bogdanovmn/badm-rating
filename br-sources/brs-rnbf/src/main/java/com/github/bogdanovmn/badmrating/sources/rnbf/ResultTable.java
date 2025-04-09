@@ -18,12 +18,17 @@ class ResultTable {
     public List<PersonalRating> ratings() {
         List<PersonalRating> result = new ArrayList<>();
         ResultTableHeader header = new ResultTableHeader(playType);
+        int processedRows = 0;
+        int emptyRows = 0;
         for (ExcelRow rawRow : rows) {
             log.trace("Row to process:\n{}", rawRow);
+            processedRows++;
             ResultTableRow row = new ResultTableRow(header, rawRow);
             if (header.isDetected()) {
                 if (row.isData()) {
                     row.fetch().ifPresent(result::add);
+                } else if (emptyRows++ > 3) {
+                    break;
                 }
             } else if (header.detect(rawRow)) {
                 continue;
@@ -31,6 +36,7 @@ class ResultTable {
                 row.fetch().ifPresent(result::add);
             }
         }
+        log.trace("Processed rows: {}", processedRows);
         if (!header.isDetected()) {
             throw new IllegalStateException("Can't detect head row");
         }

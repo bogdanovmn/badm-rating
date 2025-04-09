@@ -2,6 +2,7 @@ package com.github.bogdanovmn.badmrating.web.dataimport;
 
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.LocalStorage;
+import com.github.bogdanovmn.common.log.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -27,6 +28,7 @@ class DataSyncTask implements ApplicationRunner {
     @Scheduled(cron = "0 0 0 * * *")
     void sync() throws IOException {
         for (LocalStorage storage : localStorage) {
+            Timer timer = Timer.start();
             log.info("Syncing {}...", storage.sourceId());
             storage.update();
             LocalDate latestSuccessful = importRepository.latestSuccessful(storage.sourceId());
@@ -44,7 +46,7 @@ class DataSyncTask implements ApplicationRunner {
                     importRepository.updateAsFinished(importId, FAILED);
                 }
             }
-            log.info("{} Sync done. Processed {} files. Errors: {}", storage.sourceId(), precessed, files.size() - precessed);
+            log.info("{} Sync done in {} ms. Processed {} files. Errors: {}", storage.sourceId(), timer.durationInMills(), precessed, files.size() - precessed);
         }
     }
 
