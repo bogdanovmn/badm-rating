@@ -63,6 +63,13 @@ public class ExcelRow {
         return result;
     }
 
+    public long notEmptyValues() {
+        return cells().stream()
+            .map(ExcelCell::stringValue)
+            .filter(v -> v != null && !v.isBlank())
+            .count();
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();

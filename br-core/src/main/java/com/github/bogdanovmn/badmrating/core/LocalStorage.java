@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,7 @@ public class LocalStorage {
     private final RatingSource source;
 
     private Map<LocalDate, ArchiveFile> files;
+    private Map<LocalDate, ArchiveFileExternal> externalFiles;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String FILE_EXT = "xls";
@@ -39,7 +41,8 @@ public class LocalStorage {
         init();
         try (SimpleHttpClient httpClient = new SimpleHttpClient()) {
             for (ArchiveFileExternal externalArchive : source.archiveOverview()) {
-                log.info("Checking for archive at {}", externalArchive.getDate().format(DATE_FORMAT));
+                log.info("Checking for archive {} at {}", source.id(), externalArchive.getDate().format(DATE_FORMAT));
+                externalFiles.put(externalArchive.getDate(), externalArchive);
                 if (!files.containsKey(externalArchive.getDate())) {
                     String encodedUrl = externalArchive.getUrl().replaceAll(" ", "%20");
                     log.info("Downloading {}", encodedUrl);
@@ -74,7 +77,7 @@ public class LocalStorage {
                 .collect(
                     Collectors.toMap(ArchiveFile::date, Function.identity())
                 );
-
+            externalFiles = new HashMap<>();
             log.info("total {} files in the storage", files.size());
         }
     }
@@ -99,5 +102,9 @@ public class LocalStorage {
             .sorted(Map.Entry.comparingByKey())
             .map(Map.Entry::getValue)
             .toList();
+    }
+
+    public String fileExternalUrl(ArchiveFile archiveFile) {
+        return externalFiles.get(archiveFile.date()).getUrl();
     }
 }

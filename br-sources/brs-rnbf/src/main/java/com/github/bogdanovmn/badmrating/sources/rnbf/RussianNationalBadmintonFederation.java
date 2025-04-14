@@ -3,7 +3,6 @@ package com.github.bogdanovmn.badmrating.sources.rnbf;
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.ArchiveFileExternal;
 import com.github.bogdanovmn.badmrating.core.RatingSource;
-import com.github.bogdanovmn.httpclient.simple.SimpleHttpClient;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;

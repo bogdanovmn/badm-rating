@@ -1,10 +1,15 @@
 package com.github.bogdanovmn.badmrating.sources.rnbf;
 
 import com.github.bogdanovmn.badmrating.core.PersonalRating;
+import com.github.bogdanovmn.badmrating.core.PlayType;
+import com.github.bogdanovmn.badmrating.core.PlayerRank;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,10 +19,32 @@ class RnbfArchiveFileTest {
     @Test
     void content() throws URISyntaxException {
         List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2016-01-21.xls")).content();
-        assertEquals(1426, content.size());
+        assertEquals(1425, content.size());
         List<PersonalRating> rating = byName(content, "Болотова Екатерина");
         assertEquals(3, rating.size());
         assertEquals(1992, rating.get(0).getPlayer().getYear());
+
+        rating = byName(content, "Морозова Ольга");
+        assertEquals(1, rating.size());
+        assertEquals(1995, rating.get(0).getPlayer().getYear());
+
+        rating = byName(content, "Червякова Анастасия");
+        assertEquals(3, rating.size());
+        assertEquals(1992, rating.get(0).getPlayer().getYear());
+        assertEquals(1992, rating.get(1).getPlayer().getYear());
+        assertEquals(1992, rating.get(2).getPlayer().getYear());
+
+    }
+
+    @Test
+    void content1() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2021-03-02.xls")).content();
+        assertEquals(5720, content.size());
+        List<PersonalRating> rating = byName(content, "Степаков Глеб");
+        assertEquals(3, rating.size());
+        assertEquals(2005, rating.get(0).getPlayer().getYear());
+        assertEquals(2005, rating.get(1).getPlayer().getYear());
+        assertEquals(2005, rating.get(2).getPlayer().getYear());
     }
 
     @Test
@@ -39,9 +66,75 @@ class RnbfArchiveFileTest {
     }
 
     @Test
+    void contentYearParseCase1() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2022-05-17.xls")).content();
+        assertEquals(1286, content.size());
+        List<PersonalRating> rating = byName(content, "Капкаун Елисей");
+        assertEquals(1, rating.size());
+        assertEquals(2007, rating.get(0).getPlayer().getYear());
+        assertEquals("МСО", rating.get(0).getPlayer().getRegion());
+        assertEquals(PlayerRank.R2, rating.get(0).getPlayer().getRank());
+        assertEquals(PlayType.MD, rating.get(0).getType());
+        assertEquals(565, rating.get(0).getValue());
+    }
+
+    @Test
+    void contentYearParseCase2() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2022-05-24.xls")).content();
+        assertEquals(1309, content.size());
+        List<PersonalRating> rating = byName(content, "Капкаун Елисей");
+        assertEquals(1, rating.size());
+        assertEquals(2007, rating.get(0).getPlayer().getYear());
+        assertEquals("МСО", rating.get(0).getPlayer().getRegion());
+        assertEquals(PlayerRank.R2, rating.get(0).getPlayer().getRank());
+        assertEquals(PlayType.MD, rating.get(0).getType());
+        assertEquals(565, rating.get(0).getValue());
+    }
+
+    @Test
+    void contentSheetPlayersCount() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2019-02-26.xls")).content();
+        assertEquals(1405, content.size());
+        Map<PlayType, List<PersonalRating>> data = content.stream().collect(Collectors.groupingBy(
+            PersonalRating::getType,
+            Collectors.collectingAndThen(
+                Collectors.toList(),
+                list -> list.stream()
+                    .sorted(Comparator.comparingInt(PersonalRating::getValue).reversed())
+                    .collect(Collectors.toList())
+            )
+        ));
+        assertEquals(223, data.get(PlayType.WS).size());
+        assertEquals(265, data.get(PlayType.WD).size());
+        assertEquals(224, data.get(PlayType.MS).size());
+        assertEquals(274, data.get(PlayType.MD).size());
+        assertEquals(220 + 199, data.get(PlayType.XD).size());
+    }
+
+    @Test
+    void playerYearAndRegionCorrection() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2019-02-26.xls")).content();
+        assertEquals(1405, content.size());
+        List<PersonalRating> rating = byName(content, "Соколова Ольга");
+
+        assertEquals(3, rating.size());
+        assertEquals(2002, rating.get(0).getPlayer().getYear());
+        assertEquals("МСГ", rating.get(0).getPlayer().getRegion());
+        assertEquals(PlayerRank.KMS, rating.get(0).getPlayer().getRank());
+
+        assertEquals(2002, rating.get(1).getPlayer().getYear());
+        assertEquals("МСГ", rating.get(1).getPlayer().getRegion());
+        assertEquals(PlayerRank.KMS, rating.get(1).getPlayer().getRank());
+
+        assertEquals(2002, rating.get(2).getPlayer().getYear());
+        assertEquals("МСГ", rating.get(2).getPlayer().getRegion());
+        assertEquals(PlayerRank.KMS, rating.get(2).getPlayer().getRank());
+    }
+
+    @Test
     void contentWithoutHeader() throws URISyntaxException {
         List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2010-07-02.xls")).content();
-        assertEquals(679, content.size());
+        assertEquals(681, content.size());
         List<PersonalRating> rating = byName(content, "Мальков Владимир");
         assertEquals(2, rating.size());
         assertEquals(9091, rating.get(0).getValue());

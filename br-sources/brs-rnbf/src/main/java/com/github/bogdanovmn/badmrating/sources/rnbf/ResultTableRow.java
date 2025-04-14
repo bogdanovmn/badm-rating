@@ -19,6 +19,7 @@ import java.util.Optional;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.BIRTHDAY;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.NAME;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.RANK;
+import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.REGION;
 import static com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column.SCORE;
 
 @RequiredArgsConstructor
@@ -41,19 +42,31 @@ class ResultTableRow {
         Integer year = Optional.ofNullable(
             row.cellDateValue(header.birthdayIndex())
         ).map(LocalDateTime::getYear)
-            .orElse(null);
+            .orElseGet(
+                () -> Optional.ofNullable(
+                    row.cellStringValue(header.birthdayIndex())
+                ).map(y -> {
+                    try {
+                        return Integer.parseInt(y.trim().replaceFirst("!", "1"));
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                }).orElse(null)
+            );
         if (year == null) {
             log.trace("Year is not defined for '{}' for record #{}", name, row.index());
         }
         String region = Optional.ofNullable(
-                row.cellStringValue(header.regionIndex())
+            row.cellStringValue(header.regionIndex())
         ).map(String::trim)
+            .filter(r -> isMatched(REGION, r))
             .orElseGet(() -> {
                 log.trace("Empty region:\n{}", row);
                 return null;
             });
         if (region == null && year == null) {
-            log.warn("Empty region and year for '{}'. Skip record #{}", name, row.index());
+            log.debug("Empty region and year for '{}'. Skip record #{}", name, row.index());
+            return Optional.empty();
         }
 
         PlayerRank rank = Optional.ofNullable(
@@ -64,7 +77,7 @@ class ResultTableRow {
                     r.trim().replaceFirst("\\.0", "")
                 );
             } catch (IllegalArgumentException ex) {
-                log.warn("{}, row:\n{}", ex.getMessage(), row);
+                log.warn(ex.getMessage());
                 return null;
             }
         }).orElse(PlayerRank.NO_RANK);
@@ -72,8 +85,7 @@ class ResultTableRow {
 
         Integer rating = Optional.ofNullable(
             row.cellStringValue(header.scoreIndex())
-        ).map(r -> r.trim().replaceFirst("\\.0", ""))
-            .map(Integer::parseInt)
+        ).map(r -> Math.round(Float.parseFloat(r.trim())))
             .orElse(null);
         if (rating == null) {
             log.warn("Rating value is not defined for '{}'. Skip record #{}", name, row.index());
@@ -103,14 +115,15 @@ class ResultTableRow {
 
     boolean isData() {
         List<ExcelCell> cells = row.cells();
-        if (cells.stream().filter(c -> !c.isBlank()).count() < Column.values().length) {
+        if (row.notEmptyValues() < Column.values().length) {
             return false;
         }
         if (header.isDetected()) {
             for (Column column : Column.values()) {
                 ExcelCell cell = row.cell(header.index(column));
-                if (!column.isOptional() && !isMatched(column, cell)) {
-                    log.warn("Can't detect value for {} ({}): #{} {}", column, header.getPlayType(), row.index(), row);
+                String value = cell.stringValue();
+                if (!column.isOptional() && !isMatched(column, value)) {
+                    log.warn("Value for {} ({}#row#{}) is not matched: '{}'", column, header.getPlayType(), row.index(), value);
                     return false;
                 }
             }
@@ -127,7 +140,7 @@ class ResultTableRow {
                         && (!columnIndex.containsKey(NAME) || cell.index() <= columnIndex.get(NAME))) {
                         continue;
                     }
-                    if (isMatched(column, cell)) {
+                    if (isMatched(column, cell.stringValue())) {
                         columnIndex.put(column, cell.index());
                         log.trace("Matched: {}", column);
                         break;
@@ -146,12 +159,12 @@ class ResultTableRow {
         return false;
     }
 
-    private boolean isMatched(Column column, ExcelCell cell) {
-        log.trace("Matching '{}' to '{}'", cell.stringValue(), column.getValuePattern().pattern());
+    private boolean isMatched(Column column, String cellValue) {
+        log.trace("Matching '{}' to '{}'", cellValue, column.getValuePattern().pattern());
         return column.getValuePattern().matcher(
             column == RANK
-                ? cell.stringValue().toLowerCase()
-                : cell.stringValue()
+                ? cellValue.toLowerCase()
+                : cellValue
         ).find();
     }
 }

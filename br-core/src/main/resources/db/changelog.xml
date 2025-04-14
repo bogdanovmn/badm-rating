@@ -15,6 +15,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="source" type="varchar"/>
+            <column name="url" type="varchar"/>
             <column name="file_date" type="timestamp"/>
             <column name="started_at" type="timestamp"/>
             <column name="finished_at" type="timestamp"/>
@@ -36,6 +37,9 @@
             <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="import_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
             <column name="name" type="varchar">
                 <constraints nullable="false"/>
             </column>
@@ -51,11 +55,47 @@
                 referencedTableName="region"
                 referencedColumnNames="id"
         />
+        <addForeignKeyConstraint
+                baseTableName="player"
+                baseColumnNames="import_id"
+                constraintName="fk_player_import"
+                referencedTableName="import"
+                referencedColumnNames="id"
+        />
         <sql>
             ALTER TABLE player
             ADD CONSTRAINT check_year_or_region_not_null
             CHECK (year IS NOT NULL OR region_id IS NOT NULL);
         </sql>
+
+        <createTable tableName="player_previous_details">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="player_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="import_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year" type="integer"/>
+            <column name="region_id" type="bigint"/>
+            <column name="rank" type="varchar(7)"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="player_previous_details"
+                baseColumnNames="player_id"
+                constraintName="fk_player_previous_details_player"
+                referencedTableName="player"
+                referencedColumnNames="id"
+        />
+        <addForeignKeyConstraint
+                baseTableName="player_previous_details"
+                baseColumnNames="import_id"
+                constraintName="fk_player_previous_details_import"
+                referencedTableName="import"
+                referencedColumnNames="id"
+        />
 
         <createTable tableName="rating">
             <column name="id" type="bigint" autoIncrement="true">
@@ -70,7 +110,7 @@
             <column name="import_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="value" type="int">
+            <column name="value" type="bigint">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -88,6 +128,11 @@
                 referencedTableName="import"
                 referencedColumnNames="id"
         />
+        <sql>
+            ALTER TABLE rating
+            ADD CONSTRAINT check_play_type_valid
+            CHECK (play_type IN ('MS', 'MD', 'WS', 'WD', 'XD'));
+        </sql>
     </changeSet>
 
     <changeSet id="202503081600-addFullTextSearch" author="bogdanovmn">
@@ -99,4 +144,14 @@
         </sql>
     </changeSet>
 
+    <changeSet id="202504081900-addRatingIndex" author="bogdanovmn">
+        <createIndex tableName="rating" indexName="i_rating__player_import_ptype">
+            <column name="player_id"/>
+            <column name="import_id"/>
+            <column name="play_type"/>
+        </createIndex>
+        <createIndex tableName="import" indexName="i_import__fdate">
+            <column name="file_date"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

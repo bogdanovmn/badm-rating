@@ -10,4 +10,4 @@ spring:
     enabled: true
     change-log: classpath:db/changelog.xml
 
-local-storage.path: /tmp/badmrating
+local-storage.path: D:\devel\data\badmrating

@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 public enum PlayType {
     MS("МО", "MS"), MD("МП", "MD"),
     WS("ЖО", "WS"), WD("ЖП", "WD"),
-    XD("МС", "ЖС", "XD(M)", "XD(W)", "XD_M", "XD_W"),
+    XD("МС", "ЖС", "XD(M)", "XD(W)", "XD_M", "XD_W", "СПМ", "СПЖ"),
     UNKNOWN;
 
     private final Set<String> possibleTitles;
@@ -18,7 +18,7 @@ public enum PlayType {
         this.possibleTitles = new HashSet<>(List.of(possibleTitles));
         this.patterns = new HashSet<>();
         for (String title : possibleTitles) {
-            String regex = "\\P{L}" + Pattern.quote(title) + "(\\P{L}|$)";
+            String regex = "(^|\\P{L})" + Pattern.quote(title) + "(\\P{L}|$)";
             patterns.add(Pattern.compile(regex, Pattern.CASE_INSENSITIVE));
         }
     }

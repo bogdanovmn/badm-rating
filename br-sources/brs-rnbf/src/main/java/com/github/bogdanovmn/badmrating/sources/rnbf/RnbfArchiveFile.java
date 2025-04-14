@@ -46,10 +46,10 @@ public class RnbfArchiveFile extends ArchiveFile {
         try {
             excel = new ExcelFile(Files.newInputStream(path, StandardOpenOption.READ));
         } catch (IOException ex) {
-            log.warn("Open file error: {} ({})", ex.getMessage(), ex.getClass());
+            log.error("Open file error: {} ({})", ex.getMessage(), ex.getClass());
             return Collections.emptyList();
         } catch (OldExcelFormatException ex) {
-            log.warn("File format is not supported: {}", ex.getMessage());
+            log.error("File format is not supported: {}", ex.getMessage());
             return Collections.emptyList();
         }
         log.debug(excel.sheets().toString());
@@ -62,13 +62,19 @@ public class RnbfArchiveFile extends ArchiveFile {
                 }
                 continue;
             }
-            result.addAll(
-                new ResultTable(
-                    excel.sheetByName(sheetName),
-                    type
-                ).ratings()
-            );
+            try {
+                log.debug("Processing sheet '{}'", sheetName.trim());
+                result.addAll(
+                    new ResultTable(
+                        excel.sheetByName(sheetName),
+                        type
+                    ).ratings()
+                );
+            } catch (Exception ex) {
+                log.error("Parse file {} [sheet {}] error: {}", path.getFileName(), sheetName, ex.getMessage());
+                throw ex;
+            }
         }
-        return result;
+        return new RatingList(result).corrected();
     }
 }

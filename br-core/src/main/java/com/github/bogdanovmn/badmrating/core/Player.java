@@ -1,11 +1,14 @@
 package com.github.bogdanovmn.badmrating.core;
 
+import com.google.common.base.MoreObjects;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Value;
 
 @Value
 @Builder
 public class Player {
+    @NonNull
     String name;
     Integer year;
     String region;
@@ -17,38 +20,40 @@ public class Player {
         if (o == null || getClass() != o.getClass()) return false;
         Player other = (Player) o;
 
-        if (this.name == null || !this.name.equals(other.name)) {
+        if (!this.name.equals(other.name)) {
             return false;
         }
 
         boolean thisYearSet = this.year != null;
         boolean otherYearSet = other.year != null;
+        boolean yearsEqual = thisYearSet && otherYearSet && this.year.equals(other.year);
+        boolean noYears = !thisYearSet && !otherYearSet;
 
-        if (thisYearSet && otherYearSet) {
-            return this.year.equals(other.year);
-        }
+        boolean thisRegionSet = this.region != null;
+        boolean otherRegionSet = other.region != null;
+        boolean regionsEqual = thisRegionSet && otherRegionSet && this.region.equals(other.region);
 
-        if (!thisYearSet && !otherYearSet) {
-            if (this.region == null && other.region == null) {
-                return true;
-            }
-            if (this.region == null || other.region == null) {
-                return false;
-            }
-            return this.region.equals(other.region);
-        }
+        boolean noYearNoRegion = !thisYearSet && !thisRegionSet && !otherYearSet && !otherRegionSet;
 
-        return false;
+        return yearsEqual || noYears && regionsEqual || noYearNoRegion;
     }
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
+        int result = name.hashCode();
         if (year != null) {
             result = 31 * result + year.hashCode();
-        } else if (region != null) {
-            result = 31 * result + region.hashCode();
         }
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("name", name)
+            .add("year", year)
+            .add("region", region)
+            .add("rank", rank)
+        .toString();
     }
 }

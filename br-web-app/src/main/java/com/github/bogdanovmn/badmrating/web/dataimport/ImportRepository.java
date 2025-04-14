@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static com.github.bogdanovmn.badmrating.web.dataimport.ImportRepository.Status.IN_PROGRESS;
 
@@ -16,17 +17,22 @@ class ImportRepository {
 
     enum Status { SUCCESS, FAILED, IN_PROGRESS }
 
-    LocalDate latestSuccessful() {
-        return jdbc.queryForObject("SELECT MAX(file_date) FROM import", LocalDate.class);
+    LocalDate latestSuccessful(String source) {
+        return jdbc.queryForObject(
+            "SELECT MAX(file_date) FROM import WHERE source = ?",
+            LocalDate.class,
+            source
+        );
     }
 
-    Long create(String sourceId, ArchiveFile archiveFile) {
+    Long create(String sourceId, ArchiveFile archiveFile, String url) {
         return jdbc.queryForObject(
-            "INSERT INTO import (source, file_date, started_at, status) VALUES (?, ?, ?, ?) RETURNING id",
+            "INSERT INTO import (source, url, file_date, started_at, status) VALUES (?, ?, ?, ?, ?) RETURNING id",
                 Long.class,
                 sourceId,
+                url,
                 archiveFile.date(),
-                LocalDate.now(),
+                LocalDateTime.now(),
                 IN_PROGRESS.toString()
         );
     }
@@ -38,7 +44,7 @@ class ImportRepository {
                     status = ?
                 WHERE id = ?
                 """,
-            LocalDate.now(),
+            LocalDateTime.now(),
             status.toString(),
             importId
         );

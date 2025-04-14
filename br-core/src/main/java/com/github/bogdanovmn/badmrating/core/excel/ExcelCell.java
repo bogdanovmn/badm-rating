@@ -73,11 +73,12 @@ public class ExcelCell {
         } else if (isNumber()) {
             return String.valueOf(cell.getNumericCellValue());
         } else if (isFormula()) {
-            try {
-                return String.valueOf(cell.getNumericCellValue());
-            } catch (IllegalStateException e) {
-                return cell.getStringCellValue();
-            }
+            return switch (cell.getCachedFormulaResultType()) {
+                case NUMERIC -> String.valueOf(cell.getNumericCellValue());
+                case STRING -> cell.getStringCellValue();
+                case BOOLEAN -> Boolean.toString(cell.getBooleanCellValue());
+                default -> "";
+            };
         } else {
             return "";
         }
