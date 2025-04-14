@@ -6,7 +6,6 @@ import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.core.RatingSource;
 import com.github.bogdanovmn.badmrating.core.common.SimilarStrings;
-import com.github.bogdanovmn.badmrating.sources.rnbf.RussianNationalBadmintonFederation;
 import com.github.bogdanovmn.jaclin.CLI;
 import lombok.extern.slf4j.Slf4j;
 

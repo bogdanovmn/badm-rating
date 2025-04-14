@@ -3,7 +3,6 @@ package com.github.bogdanovmn.badmrating.sources.rnbf;
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.PlayType;
-import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.core.excel.ExcelFile;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.OldExcelFormatException;
@@ -15,7 +14,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.github.bogdanovmn.badmrating.core.PlayType.UNKNOWN;
