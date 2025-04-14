@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 public enum PlayType {
     MS("МО", "MS"), MD("МП", "MD"),
     WS("ЖО", "WS"), WD("ЖП", "WD"),
-    XD("МС", "ЖС", "XD(M)", "XD(W)", "XD_M", "XD_W"),
+    XD("МС", "ЖС", "XD(M)", "XD(W)", "XD_M", "XD_W", "СПМ", "СПЖ"),
     UNKNOWN;
 
     private final Set<String> possibleTitles;

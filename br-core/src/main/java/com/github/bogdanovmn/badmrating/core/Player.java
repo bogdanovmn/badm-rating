@@ -1,5 +1,6 @@
 package com.github.bogdanovmn.badmrating.core;
 
+import com.google.common.base.MoreObjects;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -44,5 +45,15 @@ public class Player {
             result = 31 * result + year.hashCode();
         }
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("name", name)
+            .add("year", year)
+            .add("region", region)
+            .add("rank", rank)
+        .toString();
     }
 }

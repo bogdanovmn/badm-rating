@@ -65,7 +65,7 @@ class ResultTableRow {
                 return null;
             });
         if (region == null && year == null) {
-            log.warn("Empty region and year for '{}'. Skip record #{}", name, row.index());
+            log.debug("Empty region and year for '{}'. Skip record #{}", name, row.index());
             return Optional.empty();
         }
 

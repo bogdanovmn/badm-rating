@@ -31,7 +31,7 @@ class RnbfArchiveFileTest {
         rating = byName(content, "Червякова Анастасия");
         assertEquals(3, rating.size());
         assertEquals(1992, rating.get(0).getPlayer().getYear());
-        assertEquals(2003, rating.get(1).getPlayer().getYear());
+        assertEquals(1992, rating.get(1).getPlayer().getYear());
         assertEquals(1992, rating.get(2).getPlayer().getYear());
 
     }
@@ -109,6 +109,26 @@ class RnbfArchiveFileTest {
         assertEquals(224, data.get(PlayType.MS).size());
         assertEquals(274, data.get(PlayType.MD).size());
         assertEquals(220 + 199, data.get(PlayType.XD).size());
+    }
+
+    @Test
+    void playerYearAndRegionCorrection() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2019-02-26.xls")).content();
+        assertEquals(1405, content.size());
+        List<PersonalRating> rating = byName(content, "Соколова Ольга");
+
+        assertEquals(3, rating.size());
+        assertEquals(2002, rating.get(0).getPlayer().getYear());
+        assertEquals("МСГ", rating.get(0).getPlayer().getRegion());
+        assertEquals(PlayerRank.KMS, rating.get(0).getPlayer().getRank());
+
+        assertEquals(2002, rating.get(1).getPlayer().getYear());
+        assertEquals("МСГ", rating.get(1).getPlayer().getRegion());
+        assertEquals(PlayerRank.KMS, rating.get(1).getPlayer().getRank());
+
+        assertEquals(2002, rating.get(2).getPlayer().getYear());
+        assertEquals("МСГ", rating.get(2).getPlayer().getRegion());
+        assertEquals(PlayerRank.KMS, rating.get(2).getPlayer().getRank());
     }
 
     @Test
