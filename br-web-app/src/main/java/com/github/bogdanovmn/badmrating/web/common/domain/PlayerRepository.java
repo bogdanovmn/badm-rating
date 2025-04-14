@@ -51,6 +51,8 @@ public class PlayerRepository {
             FROM player p
             JOIN region r ON r.id = p.region_id
             WHERE p.name_fts @@ to_tsquery('russian', :term)
+            ORDER BY p.name, p.year
+            LIMIT 20
             """,
             Map.of("term", preparedTerm),
             PLAYER_SEARCH_RESULT_ROW_MAPPER

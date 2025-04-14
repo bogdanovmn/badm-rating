@@ -47,6 +47,7 @@ class PlayerRatingRepository {
                 .value(rs.getInt("value"))
                 .playType(PlayType.valueOf(rs.getString("play_type")))
                 .date(rs.getTimestamp("file_date").toLocalDateTime().toLocalDate())
+                .source(rs.getString("source"))
             .build()
         );
     }
