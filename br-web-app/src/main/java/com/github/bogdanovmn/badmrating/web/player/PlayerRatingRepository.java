@@ -23,8 +23,8 @@ class PlayerRatingRepository {
                     i.file_date,
                     i.source,
                     r.value,
-                    LAG(r.value) OVER (PARTITION BY r.play_type ORDER BY i.file_date) AS prev_value,
-                    ROW_NUMBER() OVER (PARTITION BY r.play_type ORDER BY i.file_date) AS rn,
+                    LAG(r.value) OVER (PARTITION BY r.play_type, i.source ORDER BY i.file_date) AS prev_value,
+                    ROW_NUMBER() OVER (PARTITION BY r.play_type, i.source ORDER BY i.file_date) AS rn,
                     COUNT(*) OVER (PARTITION BY r.play_type) AS total_count
                 FROM rating r
                 JOIN import i ON r.import_id = i.id
