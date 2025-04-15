@@ -3,7 +3,6 @@ package com.github.bogdanovmn.badmrating.sources.rnbf;
 import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.core.PlayerRank;
-import com.github.bogdanovmn.badmrating.core.RatingType;
 import com.github.bogdanovmn.badmrating.core.excel.ExcelCell;
 import com.github.bogdanovmn.badmrating.core.excel.ExcelRow;
 import com.github.bogdanovmn.badmrating.sources.rnbf.ResultTableHeader.Column;
@@ -107,7 +106,6 @@ class ResultTableRow {
                     .build()
                 )
                 .type(header.getPlayType())
-                .ratingType(RatingType.RNBF)
                 .value(rating)
             .build()
         );

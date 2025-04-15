@@ -8,6 +8,5 @@ import lombok.Value;
 public class PersonalRating {
     Player player;
     PlayType type;
-    RatingType ratingType;
     int value;
 }

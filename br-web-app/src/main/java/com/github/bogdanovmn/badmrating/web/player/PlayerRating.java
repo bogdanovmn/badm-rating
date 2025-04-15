@@ -5,12 +5,12 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Value
 @Builder
 class PlayerRating {
-    int value;
-    PlayType playType;
-    LocalDate date;
     String source;
+    PlayType playType;
+    Map<LocalDate, Integer> data;
 }

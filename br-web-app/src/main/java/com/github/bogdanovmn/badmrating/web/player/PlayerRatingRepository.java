@@ -1,11 +1,14 @@
 package com.github.bogdanovmn.badmrating.web.player;
 
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import com.github.bogdanovmn.badmrating.core.PlayType;
 
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,7 +18,7 @@ import java.util.UUID;
 class PlayerRatingRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
-    List<PlayerRating> playerRatingHistory(UUID playerId) {
+    List<PlayerRatingQueryResultRow> playerRatingHistory(UUID playerId) {
         return jdbc.query("""
             WITH ranked_ratings AS (
                 SELECT
@@ -40,16 +43,24 @@ class PlayerRatingRepository {
                 rn = 1
                 OR rn = total_count
                 OR value != prev_value
-            ORDER BY play_type, file_date;
             """,
             Map.of("playerId", playerId),
-            (rs, rowNum) -> PlayerRating.builder()
+            (rs, rowNum) -> PlayerRatingQueryResultRow.builder()
                 .value(rs.getInt("value"))
                 .playType(PlayType.valueOf(rs.getString("play_type")))
                 .date(rs.getTimestamp("file_date").toLocalDateTime().toLocalDate())
                 .source(rs.getString("source"))
             .build()
         );
+    }
+
+    @Value
+    @Builder
+    static class PlayerRatingQueryResultRow {
+        int value;
+        PlayType playType;
+        LocalDate date;
+        String source;
     }
 
 
