@@ -1,6 +1,8 @@
 package com.github.bogdanovmn.badmrating.core.excel;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.SheetVisibility;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 
+@Slf4j
 public class ExcelFile implements Closeable {
     private final Workbook excelBook;
     private final Map<String, Sheet> sheets;
@@ -22,7 +25,11 @@ public class ExcelFile implements Closeable {
         excelBook = WorkbookFactory.create(source);
         sheets = new HashMap<>();
         for (int i = 0; i < excelBook.getNumberOfSheets(); i++) {
-            sheets.put(excelBook.getSheetName(i), excelBook.getSheetAt(i));
+            if (excelBook.getSheetVisibility(i) == SheetVisibility.VISIBLE) {
+                sheets.put(excelBook.getSheetName(i), excelBook.getSheetAt(i));
+            } else {
+                log.warn("Skipping hidden sheet {}", excelBook.getSheetName(i));
+            }
         }
     }
 

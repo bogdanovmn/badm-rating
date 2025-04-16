@@ -49,7 +49,6 @@ public class RatingList {
                     .map(rating -> PersonalRating.builder()
                         .player(normalizedPlayers.get(originalName))
                         .type(rating.getType())
-                        .ratingType(rating.getRatingType())
                         .value(rating.getValue())
                         .build()
                     );
@@ -117,7 +116,6 @@ public class RatingList {
             .map(rating -> PersonalRating.builder()
                 .player(basePlayer)
                 .type(rating.getType())
-                .ratingType(rating.getRatingType())
                 .value(rating.getValue())
                 .build()
             ).toList();

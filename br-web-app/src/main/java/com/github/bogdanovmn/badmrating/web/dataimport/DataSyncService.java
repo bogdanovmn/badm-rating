@@ -5,6 +5,7 @@ import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRepository;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
+import com.github.bogdanovmn.common.log.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ class DataSyncService {
 
     @Transactional(rollbackFor = Exception.class)
     public void processFile(Long importId, ArchiveFile archiveFile) throws IOException {
+        Timer timer = Timer.start();
         Map<Player, List<PersonalRating>> ratingByPlayer = new HashMap<>();
         for (PersonalRating rating : archiveFile.content()) {
             if (ratingByPlayer.containsKey(rating.getPlayer())) {
@@ -36,13 +38,17 @@ class DataSyncService {
         }
         int playersCount = 0;
         int ratesCount = 0;
+        Map<UUID, List<PersonalRating>> playersRatingToSave = new HashMap<>();
         for (Player player : ratingByPlayer.keySet()) {
             UUID playerId = createOrUpdatePlayer(importId, player);
-            playerRepository.addRating(importId, playerId, ratingByPlayer.get(player));
+            playersRatingToSave.put(playerId, ratingByPlayer.get(player));
             playersCount++;
             ratesCount += ratingByPlayer.get(player).size();
         }
-        log.info("Imported {} players and {} rates", playersCount, ratesCount);
+        if (ratesCount > 0) {
+            playerRepository.addRatingsBulk(importId, playersRatingToSave);
+        }
+        log.info("Imported {} players and {} rates in {} ms", playersCount, ratesCount, timer.durationInMills());
     }
 
     private UUID createOrUpdatePlayer(Long importId, Player player) {
