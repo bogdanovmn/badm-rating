@@ -1,15 +1,10 @@
 package com.github.bogdanovmn.badmrating.sources.rnbf;
 
 import com.github.bogdanovmn.badmrating.core.PersonalRating;
-import com.github.bogdanovmn.badmrating.core.PlayType;
-import com.github.bogdanovmn.badmrating.core.PlayerRank;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

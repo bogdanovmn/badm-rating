@@ -5,12 +5,14 @@ import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.core.PlayerRank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,7 @@ public class PlayerRepository {
             ).build();
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final JdbcTemplate jdbcTemplate;
 
     public List<PlayerSearchResult> findByTerm(String term) {
         String preparedTerm = Arrays.stream(
@@ -50,9 +53,9 @@ public class PlayerRepository {
             SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
             FROM player p
             JOIN region r ON r.id = p.region_id
-            WHERE p.name_fts @@ to_tsquery('russian', :term)
-            ORDER BY p.name, p.year
-            LIMIT 20
+            WHERE LOWER(p.name) <-> LOWER(:term) < 0.55
+            ORDER BY LOWER(p.name) <-> LOWER(:term), p.name, p.year
+            LIMIT 15
             """,
             Map.of("term", preparedTerm),
             PLAYER_SEARCH_RESULT_ROW_MAPPER
@@ -126,19 +129,26 @@ public class PlayerRepository {
         );
     }
 
-    public void addRating(Long importId, UUID playerId, List<PersonalRating> personalRatings) {
-        jdbc.batchUpdate("""
-            INSERT INTO rating (player_id, play_type, import_id, value)
-            VALUES (:playerId, :playType, :importId, :value)
-            """,
-            personalRatings.stream()
-                .map(rating -> new MapSqlParameterSource()
-                    .addValue("playerId", playerId)
-                    .addValue("playType", rating.getType().toString())
-                    .addValue("importId", importId)
-                    .addValue("value", rating.getValue())
-                )
-                .toArray(SqlParameterSource[]::new)
+    public void addRatingsBulk(Long importId, Map<UUID, List<PersonalRating>> playerRatings) {
+        List<String> valueClauses = new ArrayList<>(playerRatings.size());
+        List<Object> params = new ArrayList<>(playerRatings.size() * 2);
+
+        playerRatings.forEach((playerId, ratings) -> {
+            ratings.forEach(rating -> {
+                valueClauses.add("(?, ?, ?, ?)");
+                params.add(playerId);
+                params.add(rating.getType().toString());
+                params.add(importId);
+                params.add(rating.getValue());
+            });
+        });
+
+        jdbcTemplate.update(
+            String.format(
+                "INSERT INTO rating (player_id, play_type, import_id, value) VALUES %s",
+                    String.join(",", valueClauses)
+            ),
+            params.toArray(new Object[0])
         );
     }
 
