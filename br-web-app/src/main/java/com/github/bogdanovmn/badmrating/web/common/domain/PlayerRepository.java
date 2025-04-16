@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -53,7 +52,6 @@ public class PlayerRepository {
             SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
             FROM player p
             JOIN region r ON r.id = p.region_id
-            WHERE LOWER(p.name) <-> LOWER(:term) < 0.55
             ORDER BY LOWER(p.name) <-> LOWER(:term), p.name, p.year
             LIMIT 15
             """,
