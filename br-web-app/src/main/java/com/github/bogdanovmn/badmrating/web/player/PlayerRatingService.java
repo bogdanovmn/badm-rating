@@ -22,7 +22,10 @@ class PlayerRatingService {
                 row -> new SourcePlayTypeKey(row.getSource(), row.getPlayType()),
                 Collectors.toMap(
                     PlayerRatingQueryResultRow::getDate,
-                    PlayerRatingQueryResultRow::getValue
+                    PlayerRatingQueryResultRow::getValue,
+                    // в одном файле может быть указано несколько значений рейтинга, нам нужны самые актуальные
+                    // TODO: надо перенести эту логику на процесс импорта
+                    Math::max
                 )
             ))
             .entrySet().stream()

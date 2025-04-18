@@ -151,4 +151,17 @@
             <column name="file_date"/>
         </createIndex>
     </changeSet>
+
+    <changeSet id="202504170300-add-rating-index-for-top" author="bogdanovmn">
+        <createIndex tableName="rating" indexName="i_rating__play_type_player_id_import_id">
+            <column name="play_type"/>
+            <column name="player_id"/>
+            <column name="import_id"/>
+        </createIndex>
+        <createIndex tableName="import" indexName="i_import__source_file_date">
+            <column name="source"/>
+            <column name="file_date" descending="true"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

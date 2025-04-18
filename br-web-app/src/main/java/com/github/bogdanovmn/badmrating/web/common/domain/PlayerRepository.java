@@ -24,7 +24,7 @@ import static java.util.stream.Collectors.joining;
 @RequiredArgsConstructor
 @Slf4j
 public class PlayerRepository {
-    private static final RowMapper<PlayerSearchResult> PLAYER_SEARCH_RESULT_ROW_MAPPER = (rs, rowNum)
+    public static final RowMapper<PlayerSearchResult> PLAYER_SEARCH_RESULT_ROW_MAPPER = (rs, rowNum)
         -> PlayerSearchResult.builder()
             .id(UUID.fromString(rs.getString("id")))
             .importId(rs.getLong("import_id"))

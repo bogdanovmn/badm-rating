@@ -32,28 +32,31 @@ public class RatingList {
         for (Set<String> similar : new SimilarStrings(ratingsByName.keySet(), 1).groups()) {
             fixTypo(similar, ratingsByName);
         }
+        return ratingsByName.values().stream()
+            .flatMap(List::stream)
+            .toList();
 
         // Нормализуем игроков по году, региону и рангу
-        Map<String, Player> normalizedPlayers = ratingsByName.entrySet().stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> normalizePlayer(entry.getValue())
-            ));
-
-        return ratingsByName.entrySet().stream()
-            .flatMap(e -> {
-                String originalName = e.getKey();
-                List<PersonalRating> originalRatings = e.getValue();
-
-                return originalRatings.stream()
-                    .map(rating -> PersonalRating.builder()
-                        .player(normalizedPlayers.get(originalName))
-                        .type(rating.getType())
-                        .value(rating.getValue())
-                        .build()
-                    );
-            })
-            .collect(Collectors.toList());
+//        Map<String, Player> normalizedPlayers = ratingsByName.entrySet().stream()
+//            .collect(Collectors.toMap(
+//                Map.Entry::getKey,
+//                entry -> normalizePlayer(entry.getValue())
+//            ));
+//
+//        return ratingsByName.entrySet().stream()
+//            .flatMap(e -> {
+//                String originalName = e.getKey();
+//                List<PersonalRating> originalRatings = e.getValue();
+//
+//                return originalRatings.stream()
+//                    .map(rating -> PersonalRating.builder()
+//                        .player(normalizedPlayers.get(originalName))
+//                        .type(rating.getType())
+//                        .value(rating.getValue())
+//                        .build()
+//                    );
+//            })
+//            .collect(Collectors.toList());
     }
 
     private void fixTypo(Set<String> similar, Map<String, List<PersonalRating>> ratingsByName) {
@@ -77,7 +80,6 @@ public class RatingList {
         Iterator<String> iterator = filteredSimilar.iterator();
         String baseName = iterator.next();
         List<PersonalRating> baseRatings = ratingsByName.get(baseName);
-        Player basePlayer = normalizePlayer(baseRatings);
         Set<PlayType> basePlayType = baseRatings.stream().map(PersonalRating::getType).collect(Collectors.toSet());
 
         while (iterator.hasNext()) {
@@ -91,7 +93,8 @@ public class RatingList {
                         typo, typoPlayType, baseName, basePlayType
                 );
             } else {
-                Player typoPlayer = normalizePlayer(typoRatings);
+                Player basePlayer = baseRatings.get(0).getPlayer();//normalizePlayer(baseRatings);
+                Player typoPlayer = typoRatings.get(0).getPlayer();//normalizePlayer(typoRatings);
                 if (playersLooksEqual(typoPlayer, basePlayer)) {
                     log.info("Looks like the same person: {} & {}. Will fix typo: {} -> {}", typoPlayer, basePlayer, typo, baseName);
                     List<PersonalRating> fixedRatings = changedRatingsWithTypo(typoRatings, basePlayer);
@@ -122,9 +125,21 @@ public class RatingList {
     }
 
     private Player normalizePlayer(List<PersonalRating> ratingList) {
-        if (ratingList.isEmpty()) {
-            throw new IllegalArgumentException("Rating list cannot be empty");
+        Map<PlayType, Long> typesCount = ratingList.stream()
+            .map(PersonalRating::getType)
+            .collect(Collectors.groupingBy(
+                t -> t,
+                Collectors.counting()
+            ));
+        if (typesCount.values().stream().anyMatch(count -> count > 1)) {
+            log.warn(
+                "Can't normalize player '{}': they have the same play types {}",
+                ratingList.get(0).getPlayer().getName(),
+                typesCount
+            );
+            return null;
         }
+
         Player firstPlayer = ratingList.get(0).getPlayer();
 
         // Нормализация года: выбираем первый непустой
@@ -157,6 +172,6 @@ public class RatingList {
             .year(year)
             .region(region)
             .rank(rank)
-            .build();
+        .build();
     }
 }
