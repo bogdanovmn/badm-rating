@@ -1,3 +1,13 @@
+management:
+  endpoints.web.exposure.include: prometheus, health, metrics
+  prometheus.metrics.export.enabled: 'true'
+  metrics:
+    enable:
+      jvm: 'true'
+      percentiles-histogram:
+        http.server.requests: 'true'
+
+
 spring:
   application.name: badmrating
   datasource:
@@ -5,6 +15,9 @@ spring:
     username: root
     password: 123
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 3
 
   liquibase:
     enabled: true
