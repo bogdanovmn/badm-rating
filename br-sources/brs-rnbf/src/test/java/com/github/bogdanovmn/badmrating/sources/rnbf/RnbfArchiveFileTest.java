@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class RnbfArchiveFileTest {
     private static final FileResource FILE_RESOURCE = new FileResource(RnbfArchiveFileTest.class);
@@ -31,7 +32,7 @@ class RnbfArchiveFileTest {
         rating = byName(content, "Червякова Анастасия");
         assertEquals(3, rating.size());
         assertEquals(1992, rating.get(0).getPlayer().getYear());
-        assertEquals(1992, rating.get(1).getPlayer().getYear());
+        assertEquals(2003, rating.get(1).getPlayer().getYear());
         assertEquals(1992, rating.get(2).getPlayer().getYear());
 
     }
@@ -118,17 +119,20 @@ class RnbfArchiveFileTest {
         List<PersonalRating> rating = byName(content, "Соколова Ольга");
 
         assertEquals(3, rating.size());
-        assertEquals(2002, rating.get(0).getPlayer().getYear());
+        assertNull(rating.get(0).getPlayer().getYear());
         assertEquals("МСГ", rating.get(0).getPlayer().getRegion());
         assertEquals(PlayerRank.KMS, rating.get(0).getPlayer().getRank());
+        assertEquals(5815, rating.get(0).getValue());
 
         assertEquals(2002, rating.get(1).getPlayer().getYear());
         assertEquals("МСГ", rating.get(1).getPlayer().getRegion());
         assertEquals(PlayerRank.KMS, rating.get(1).getPlayer().getRank());
+        assertEquals(7370, rating.get(1).getValue());
 
-        assertEquals(2002, rating.get(2).getPlayer().getYear());
-        assertEquals("МСГ", rating.get(2).getPlayer().getRegion());
+        assertNull(rating.get(2).getPlayer().getYear());
+        assertEquals("СПГ", rating.get(2).getPlayer().getRegion());
         assertEquals(PlayerRank.KMS, rating.get(2).getPlayer().getRank());
+        assertEquals(3415, rating.get(2).getValue());
     }
 
     @Test
