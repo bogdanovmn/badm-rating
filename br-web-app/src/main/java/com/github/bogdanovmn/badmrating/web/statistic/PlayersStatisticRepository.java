@@ -36,7 +36,7 @@ class PlayersStatisticRepository {
                     p.id,
                     p.name,
                     p.year,
-                    r.short_name region,
+                    re.short_name region,
                     p.rank,
                     i.file_date,
                     r.import_id,
@@ -44,7 +44,7 @@ class PlayersStatisticRepository {
                 FROM player p
                 JOIN last_rating r ON r.player_id = p.id
                 JOIN import i ON i.id = r.import_id
-                LEFT JOIN region r ON r.id = p.region_id
+                LEFT JOIN region re ON re.id = p.region_id
                 ORDER BY r.value DESC
                 LIMIT :limit
                 """,
