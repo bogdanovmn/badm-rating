@@ -20,7 +20,7 @@ class PlayersStatisticRepository {
 
     List<PlayersTopQueryResultRow> getPlayersTop(String source, PlayType playType, int topMaxResults) {
         return jdbc.query("""
-                WITH actual_rating AS (
+                WITH last_rating AS (
                    SELECT DISTINCT ON (p.id)
                       p.id player_id,
                       r.value,
@@ -39,13 +39,13 @@ class PlayersStatisticRepository {
                     r.short_name region,
                     p.rank,
                     i.file_date,
-                    a.import_id,
-                    a.value
+                    r.import_id,
+                    r.value
                 FROM player p
-                JOIN actual_rating a ON a.player_id = p.id
-                JOIN import i ON i.id = a.import_id
+                JOIN last_rating r ON r.player_id = p.id
+                JOIN import i ON i.id = r.import_id
                 LEFT JOIN region r ON r.id = p.region_id
-                ORDER BY a.value DESC
+                ORDER BY r.value DESC
                 LIMIT :limit
                 """,
             Map.of(
@@ -61,6 +61,48 @@ class PlayersStatisticRepository {
                 .value(rs.getInt("value"))
                 .updatedAt(rs.getTimestamp("file_date").toLocalDateTime().toLocalDate())
             .build()
+        );
+    }
+
+    List<PlayersTopQueryResultRow> getPlayersActualTop(String source, PlayType playType, int topMaxResults) {
+        return jdbc.query("""
+            WITH
+            last_import AS (
+                SELECT id, file_date FROM import
+                WHERE source = :source
+                AND file_date = (SELECT MAX(file_date) FROM import WHERE source = :source)
+            )
+            SELECT
+                p.id,
+                p.name,
+                p.year,
+                re.short_name region,
+                p.rank,
+                i.file_date,
+                r.import_id,
+                r.play_type,
+                r.value
+            FROM rating r
+            JOIN player p ON r.player_id = p.id
+            JOIN last_import i ON i.id = r.import_id
+            LEFT JOIN region re ON re.id = p.region_id
+            WHERE r.play_type = :playType
+            ORDER BY r.value DESC
+            LIMIT :limit
+            """,
+            Map.of(
+                "source", source,
+                "playType", playType.toString(),
+                "limit", topMaxResults
+            ),
+            (rs, rowNum) -> PlayersTopQueryResultRow.builder()
+                .player(
+                    PlayerRepository.PLAYER_SEARCH_RESULT_ROW_MAPPER.mapRow(rs, rowNum)
+                )
+                .position(rowNum + 1)
+                .value(rs.getInt("value"))
+                .updatedAt(rs.getTimestamp("file_date").toLocalDateTime().toLocalDate())
+                .build()
         );
     }
 

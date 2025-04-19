@@ -31,7 +31,7 @@ class PlayerController {
         if (term.length() > 2) {
            return playerService.search(term);
         } else {
-            return List.of();
+            throw new IllegalArgumentException();
         }
     }
 }

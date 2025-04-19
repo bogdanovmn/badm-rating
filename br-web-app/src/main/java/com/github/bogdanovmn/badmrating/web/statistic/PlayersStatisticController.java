@@ -19,4 +19,9 @@ class PlayersStatisticController {
     List<TopStatistic> getPlayersTop() {
         return playersStatisticService.getPlayersTop();
     }
+
+    @GetMapping("actual-top")
+    List<TopStatistic> getPlayersActualTop() {
+        return playersStatisticService.getPlayersActualTop();
+    }
 }
