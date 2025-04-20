@@ -34,4 +34,9 @@ class PlayerController {
             throw new IllegalArgumentException();
         }
     }
+
+    @GetMapping("{id}/similarities")
+    List<PlayerSearchResult> playerSimilarities(@PathVariable("id") UUID playerId) {
+        return playerService.similarities(playerId);
+    }
 }

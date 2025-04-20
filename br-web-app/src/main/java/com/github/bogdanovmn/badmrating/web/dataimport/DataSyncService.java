@@ -52,7 +52,7 @@ class DataSyncService {
     }
 
     private UUID createOrUpdatePlayer(Long importId, Player player) {
-        Optional<PlayerSearchResult> persistedPlayer = playerRepository.find(player);
+        Optional<PlayerSearchResult> persistedPlayer = playerRepository.findByName(player);
         if (persistedPlayer.isEmpty()) {
             return playerRepository.create(importId, player).getId();
         } else {

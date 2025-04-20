@@ -60,7 +60,7 @@ public class PlayerRepository {
         );
     }
 
-    public Optional<PlayerSearchResult> find(Player player) {
+    public Optional<PlayerSearchResult> findByName(Player player) {
         return jdbc.query("""
             SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
             FROM player p
@@ -72,6 +72,37 @@ public class PlayerRepository {
         ).stream().filter(
             p -> p.getDetails().equals(player)
         ).findFirst();
+    }
+
+    public PlayerSearchResult getById(UUID playerId) {
+        return jdbc.queryForObject("""
+            SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
+            FROM player p
+            LEFT JOIN region r ON r.id = p.region_id
+            WHERE p.id = :payerId
+            """,
+            Map.of("payerId", playerId),
+            PLAYER_SEARCH_RESULT_ROW_MAPPER
+        );
+    }
+
+    public List<PlayerSearchResult> findSimilaritiesCandidates(String name) {
+        return jdbc.query("""
+            SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
+            FROM player p
+            LEFT JOIN region r ON r.id = p.region_id
+            WHERE SIMILARITY(name, :name) > 0.45 -- Порог схожести
+              AND LENGTH(name) BETWEEN :nameLength - 1 AND :nameLength + 1
+              AND LOWER(LEFT(name, 1)) = LOWER(LEFT(:name, 1))
+            ORDER BY SIMILARITY(name, :name) DESC
+            LIMIT 20
+            """,
+            Map.of(
+                "name", name,
+                "nameLength", name.length()
+            ),
+            PLAYER_SEARCH_RESULT_ROW_MAPPER
+        );
     }
 
     public PlayerSearchResult create(Long importId, Player player) {
