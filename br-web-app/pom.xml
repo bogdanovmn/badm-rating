@@ -59,6 +59,10 @@
             <groupId>com.github.bogdanovmn.badmrating</groupId>
             <artifactId>brs-rnbf</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.bogdanovmn.humanreadablevalues</groupId>
+            <artifactId>human-readable-values</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

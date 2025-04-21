@@ -59,7 +59,7 @@ class PlayersStatisticService {
 
     public List<TopStatistic> getPlayersTop() {
         return getPlayersTopByFunction(
-            params -> playersStatisticRepository.getPlayersTop(
+            params -> playersStatisticRepository.getPlayersGlobalTop(
                 params.source(), params.playType(), params.maxResults()
             )
         );

@@ -5,7 +5,9 @@ import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRepository;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
+import com.github.bogdanovmn.badmrating.web.statistic.PlayersStatisticRepository;
 import com.github.bogdanovmn.common.log.Timer;
+import com.github.bogdanovmn.humanreadablevalues.MillisecondsValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Slf4j
 class DataSyncService {
     private final PlayerRepository playerRepository;
+    private final PlayersStatisticRepository playersStatisticRepository;
 
     @Transactional(rollbackFor = Exception.class)
     public void processFile(Long importId, ArchiveFile archiveFile) throws IOException {
@@ -48,7 +51,18 @@ class DataSyncService {
         if (ratesCount > 0) {
             playerRepository.addRatingsBulk(importId, playersRatingToSave);
         }
-        log.info("Imported {} players and {} rates in {} ms", playersCount, ratesCount, timer.durationInMills());
+        log.info("Imported {} players and {} rates in {}", playersCount, ratesCount, new MillisecondsValue(timer.durationInMills()).fullString());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void playersTopCalculate(long importId) {
+        Timer timer = Timer.start();
+        int rows = playersStatisticRepository.updatePlayersActualTop(importId);
+        log.info("Updated players actual top in {} ({} rows)", new MillisecondsValue(timer.durationInMills()).fullString(), rows);
+
+        timer = Timer.start();
+        rows = playersStatisticRepository.updatePlayersGlobalTop(importId);
+        log.info("Updated players global top in {} ({} rows)", new MillisecondsValue(timer.durationInMills()).fullString(), rows);
     }
 
     private UUID createOrUpdatePlayer(Long importId, Player player) {

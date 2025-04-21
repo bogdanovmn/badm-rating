@@ -3,6 +3,7 @@ package com.github.bogdanovmn.badmrating.web.dataimport;
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.LocalStorage;
 import com.github.bogdanovmn.common.log.Timer;
+import com.github.bogdanovmn.humanreadablevalues.MillisecondsValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -13,9 +14,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-
-import static com.github.bogdanovmn.badmrating.web.dataimport.ImportRepository.Status.FAILED;
-import static com.github.bogdanovmn.badmrating.web.dataimport.ImportRepository.Status.SUCCESS;
 
 @Slf4j
 @Component
@@ -39,14 +37,23 @@ class DataSyncTask implements ApplicationRunner {
                 Long importId = importRepository.create(storage.sourceId(), archiveFile, storage.fileExternalUrl(archiveFile));
                 try {
                     dataSyncService.processFile(importId, archiveFile);
-                    importRepository.updateAsFinished(importId, SUCCESS);
+                    log.debug("Players top calculation started...");
+                    dataSyncService.playersTopCalculate(importId);
+                    importRepository.updateAsSuccessful(importId);
                     precessed++;
                 } catch (Exception e) {
                     log.error("Error processing file: {}", archiveFile, e);
-                    importRepository.updateAsFinished(importId, FAILED);
+                    importRepository.updateAsFailed(importId, e.getClass().getName());
                 }
+                if (precessed > 1) break;
             }
-            log.info("{} Sync done in {} ms. Processed {} files. Errors: {}", storage.sourceId(), timer.durationInMills(), precessed, files.size() - precessed);
+            log.info(
+                "{} Sync done in {}. Processed {} files. Errors: {}",
+                    storage.sourceId(),
+                    new MillisecondsValue(timer.durationInMills()).fullString(),
+                    precessed,
+                    files.size() - precessed
+            );
         }
     }
 

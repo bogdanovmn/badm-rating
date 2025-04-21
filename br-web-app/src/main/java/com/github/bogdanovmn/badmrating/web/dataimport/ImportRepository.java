@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import static com.github.bogdanovmn.badmrating.web.dataimport.ImportRepository.Status.FAILED;
 import static com.github.bogdanovmn.badmrating.web.dataimport.ImportRepository.Status.IN_PROGRESS;
+import static com.github.bogdanovmn.badmrating.web.dataimport.ImportRepository.Status.SUCCESS;
 
 @Component
 @RequiredArgsConstructor
@@ -37,15 +39,25 @@ class ImportRepository {
         );
     }
 
-    void updateAsFinished(long importId, Status status) {
+    void updateAsFailed(long importId, String message) {
+        updateAsFinished(importId, FAILED, message);
+    }
+
+    void updateAsSuccessful(long importId) {
+        updateAsFinished(importId, SUCCESS, null);
+    }
+
+    void updateAsFinished(long importId, Status status, String message) {
         jdbc.update("""
                 UPDATE import SET
                     finished_at = ?,
-                    status = ?
+                    status = ?,
+                    details = ?
                 WHERE id = ?
                 """,
             LocalDateTime.now(),
             status.toString(),
+            message,
             importId
         );
     }
