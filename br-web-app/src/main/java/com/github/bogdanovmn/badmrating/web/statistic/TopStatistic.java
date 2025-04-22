@@ -21,6 +21,8 @@ class TopStatistic {
         PlayerSearchResult player;
         Integer position;
         Integer rating;
+        Integer ratingChange;
+        Integer positionChange;
         LocalDate updatedAt;
     }
 }
