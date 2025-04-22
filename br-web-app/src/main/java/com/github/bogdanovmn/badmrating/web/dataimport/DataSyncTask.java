@@ -45,7 +45,6 @@ class DataSyncTask implements ApplicationRunner {
                     log.error("Error processing file: {}", archiveFile, e);
                     importRepository.updateAsFailed(importId, e.getClass().getName());
                 }
-                if (precessed > 1) break;
             }
             log.info(
                 "{} Sync done in {}. Processed {} files. Errors: {}",
