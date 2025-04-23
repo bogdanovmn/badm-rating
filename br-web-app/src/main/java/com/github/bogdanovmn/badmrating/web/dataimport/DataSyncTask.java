@@ -2,6 +2,7 @@ package com.github.bogdanovmn.badmrating.web.dataimport;
 
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
 import com.github.bogdanovmn.badmrating.core.LocalStorage;
+import com.github.bogdanovmn.badmrating.web.common.domain.Source;
 import com.github.bogdanovmn.common.log.Timer;
 import com.github.bogdanovmn.humanreadablevalues.MillisecondsValue;
 import lombok.RequiredArgsConstructor;
@@ -27,31 +28,34 @@ class DataSyncTask implements ApplicationRunner {
     void sync() throws IOException {
         for (LocalStorage storage : localStorage) {
             Timer timer = Timer.start();
+            Source source = Source.valueOf(storage.sourceId());
             log.info("Syncing {}...", storage.sourceId());
             storage.update();
-            LocalDate latestSuccessful = importRepository.latestSuccessful(storage.sourceId());
+            LocalDate latestSuccessful = importRepository.latestSuccessful(source);
             List<ArchiveFile> files = storage.historyFrom(latestSuccessful);
-            int precessed = 0;
+            int processed = 0;
             for (ArchiveFile archiveFile : files) {
                 log.info("Processing file: {}", archiveFile);
-                Long importId = importRepository.create(storage.sourceId(), archiveFile, storage.fileExternalUrl(archiveFile));
+                Long importId = importRepository.create(source, archiveFile, storage.fileExternalUrl(archiveFile));
                 try {
-                    dataSyncService.processFile(importId, archiveFile);
-                    log.debug("Players top calculation started...");
-                    dataSyncService.playersTopCalculate(importId);
-                    importRepository.updateAsSuccessful(importId);
-                    precessed++;
+                    if (dataSyncService.processFile(importId, archiveFile) > 0) {
+                        log.debug("Players top calculation started...");
+                        dataSyncService.playersTopCalculate(importId);
+                        importRepository.updateAsSuccessful(importId);
+                    }
+                    processed++;
                 } catch (Exception e) {
                     log.error("Error processing file: {}", archiveFile, e);
                     importRepository.updateAsFailed(importId, e.getClass().getName());
                 }
+//                if (processed > 2) break;
             }
             log.info(
                 "{} Sync done in {}. Processed {} files. Errors: {}",
                     storage.sourceId(),
                     new MillisecondsValue(timer.durationInMills()).fullString(),
-                    precessed,
-                    files.size() - precessed
+                    processed,
+                    files.size() - processed
             );
         }
     }

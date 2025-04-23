@@ -79,9 +79,9 @@ public class PlayerRepository {
             SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
             FROM player p
             LEFT JOIN region r ON r.id = p.region_id
-            WHERE p.id = :payerId
+            WHERE p.id = :playerId
             """,
-            Map.of("payerId", playerId),
+            Map.of("playerId", playerId),
             PLAYER_SEARCH_RESULT_ROW_MAPPER
         );
     }

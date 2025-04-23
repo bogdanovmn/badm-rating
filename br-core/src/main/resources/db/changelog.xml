@@ -1,9 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
 
     <changeSet id="202503080017-init" author="bogdanovmn">
         <sql>
@@ -20,11 +18,22 @@
             CHECK (VALUE ~ '^(SUCCESS|FAILED|IN_PROGRESS)$');
         </sql>
 
+        <createTable tableName="source">
+            <column name="id" type="smallint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+
         <createTable tableName="import">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="source" type="varchar"/>
+            <column name="source_id" type="smallint">
+                <constraints nullable="false" foreignKeyName="fk_import__source" references="source(id)"/>
+            </column>
             <column name="url" type="varchar"/>
             <column name="file_date" type="timestamp"/>
             <column name="started_at" type="timestamp"/>
@@ -32,7 +41,11 @@
             <column name="status" type="import_status_domain"/>
             <column name="details" type="varchar"/>
         </createTable>
-        <addUniqueConstraint tableName="import" columnNames="file_date, source"/>
+        <addUniqueConstraint tableName="import" columnNames="file_date, source_id"/>
+        <createIndex tableName="import" indexName="i_import__source_file_date">
+            <column name="source_id"/>
+            <column name="file_date" descending="true"/>
+        </createIndex>
 
         <createTable tableName="region">
             <column name="id" type="bigint" autoIncrement="true">
@@ -48,32 +61,23 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="import_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" foreignKeyName="fk_player__import" references="import(id)"/>
             </column>
             <column name="name" type="varchar">
                 <constraints nullable="false"/>
             </column>
             <column name="year" type="integer"/>
-            <column name="region_id" type="bigint"/>
+            <column name="region_id" type="bigint">
+                <constraints nullable="true" foreignKeyName="fk_player__region" references="region(id)"/>
+            </column>
             <column name="rank" type="varchar(7)"/>
             <column name="trainer" type="varchar"/>
             <column name="school" type="varchar"/>
         </createTable>
         <addUniqueConstraint tableName="player" columnNames="name, year, region_id"/>
-        <addForeignKeyConstraint
-                baseTableName="player"
-                baseColumnNames="region_id"
-                constraintName="fk_player_region"
-                referencedTableName="region"
-                referencedColumnNames="id"
-        />
-        <addForeignKeyConstraint
-                baseTableName="player"
-                baseColumnNames="import_id"
-                constraintName="fk_player_import"
-                referencedTableName="import"
-                referencedColumnNames="id"
-        />
+        <createIndex tableName="player" indexName="i_player__region">
+            <column name="region_id"/>
+        </createIndex>
         <sql>
             ALTER TABLE player
             ADD CONSTRAINT check_year_or_region_not_null
@@ -85,63 +89,50 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="player_id" type="UUID">
-                <constraints nullable="false"/>
+                <constraints nullable="false" foreignKeyName="fk_ppd__player_id" references="player(id)"/>
             </column>
             <column name="import_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" foreignKeyName="fk_ppd__import" references="import(id)"/>
             </column>
             <column name="year" type="integer"/>
-            <column name="region_id" type="bigint"/>
+            <column name="region_id" type="bigint">
+                <constraints nullable="true" foreignKeyName="fk_ppd__region" references="region(id)"/>
+            </column>
             <column name="rank" type="varchar(7)"/>
             <column name="trainer" type="varchar"/>
             <column name="school" type="varchar"/>
         </createTable>
-        <addForeignKeyConstraint
-                baseTableName="player_previous_details"
-                baseColumnNames="player_id"
-                constraintName="fk_player_previous_details_player"
-                referencedTableName="player"
-                referencedColumnNames="id"
-        />
-        <addForeignKeyConstraint
-                baseTableName="player_previous_details"
-                baseColumnNames="import_id"
-                constraintName="fk_player_previous_details_import"
-                referencedTableName="import"
-                referencedColumnNames="id"
-        />
+        <createIndex tableName="player_previous_details" indexName="i_ppd__player">
+            <column name="player_id"/>
+        </createIndex>
 
         <createTable tableName="rating">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="player_id" type="UUID">
-                <constraints nullable="false"/>
+                <constraints nullable="false" foreignKeyName="fk_rating__player_id" references="player(id)"/>
             </column>
             <column name="play_type" type="play_type_domain">
                 <constraints nullable="false"/>
             </column>
             <column name="import_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="false" foreignKeyName="fk_rating__import" references="import(id)"/>
             </column>
             <column name="value" type="bigint">
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addForeignKeyConstraint
-                baseTableName="rating"
-                baseColumnNames="player_id"
-                constraintName="fk_rating_player"
-                referencedTableName="player"
-                referencedColumnNames="id"
-        />
-        <addForeignKeyConstraint
-                baseTableName="rating"
-                baseColumnNames="import_id"
-                constraintName="fk_rating_import"
-                referencedTableName="import"
-                referencedColumnNames="id"
-        />
+        <createIndex tableName="rating" indexName="i_rating__player_import_ptype">
+            <column name="player_id"/>
+            <column name="import_id"/>
+            <column name="play_type"/>
+        </createIndex>
+        <createIndex tableName="rating" indexName="i_rating__play_type_player_id_import_id">
+            <column name="play_type"/>
+            <column name="player_id"/>
+            <column name="import_id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="202503081600-addFullTextSearch" author="bogdanovmn">
@@ -151,112 +142,152 @@
         </sql>
     </changeSet>
 
-    <changeSet id="202504081900-addRatingIndex" author="bogdanovmn">
-        <createIndex tableName="rating" indexName="i_rating__player_import_ptype">
-            <column name="player_id"/>
-            <column name="import_id"/>
-            <column name="play_type"/>
-        </createIndex>
-        <createIndex tableName="import" indexName="i_import__fdate">
-            <column name="file_date"/>
-        </createIndex>
+    <changeSet id="202504211200-add-top-position-tables-partition-procedure" author="bogdanovmn">
+        <sql splitStatements="false" stripComments="false">
+            CREATE OR REPLACE PROCEDURE create_partition_for_source(
+                base_table_name TEXT,
+                source_id INTEGER,
+                source_name TEXT
+            )
+            LANGUAGE plpgsql
+            AS $$
+            DECLARE
+                play_type play_type_domain;
+                partition_name TEXT;
+                partition_name_playtype TEXT;
+            BEGIN
+                -- Вставка в source с ON CONFLICT
+                EXECUTE format(
+                    'INSERT INTO source (id, name) VALUES (%s, %L) ON CONFLICT (id) DO NOTHING',
+                    source_id, source_name
+                );
+
+                -- Создание имен партиций
+                partition_name := format('%s_source_%s', base_table_name, source_id);
+
+                -- Создание партиции первого уровня
+                IF base_table_name = 'player_global_top_position' THEN
+                    EXECUTE format(
+                        'CREATE TABLE %I (
+                            player_id UUID NOT NULL,
+                            import_id BIGINT NOT NULL,
+                            play_type play_type_domain NOT NULL,
+                            rating_date TIMESTAMP NOT NULL,
+                            rating_value INTEGER NOT NULL,
+                            position INTEGER NOT NULL,
+                            rating_change INTEGER NOT NULL DEFAULT 0,
+                            position_change INTEGER NOT NULL DEFAULT 0,
+                            source_id SMALLINT NOT NULL,
+                            CHECK (source_id = %s),
+                            CONSTRAINT fk_%s_player FOREIGN KEY (player_id) REFERENCES player(id),
+                            CONSTRAINT fk_%s_import FOREIGN KEY (import_id) REFERENCES import(id),
+                            CONSTRAINT fk_%s_source FOREIGN KEY (source_id) REFERENCES source(id)
+                        ) PARTITION BY LIST (play_type)',
+                        partition_name, source_id, partition_name, partition_name, partition_name
+                    );
+                ELSIF base_table_name = 'player_actual_top_position' THEN
+                    EXECUTE format(
+                        'CREATE TABLE %I (
+                            player_id UUID NOT NULL,
+                            import_id BIGINT NOT NULL,
+                            play_type play_type_domain NOT NULL,
+                            rating_value INTEGER NOT NULL,
+                            position INTEGER NOT NULL,
+                            rating_change INTEGER NOT NULL DEFAULT 0,
+                            position_change INTEGER NOT NULL DEFAULT 0,
+                            source_id SMALLINT NOT NULL,
+                            CHECK (source_id = %s),
+                            CONSTRAINT fk_%s_player FOREIGN KEY (player_id) REFERENCES player(id),
+                            CONSTRAINT fk_%s_import FOREIGN KEY (import_id) REFERENCES import(id),
+                            CONSTRAINT fk_%s_source FOREIGN KEY (source_id) REFERENCES source(id)
+                        ) PARTITION BY LIST (play_type)',
+                        partition_name, source_id, partition_name, partition_name, partition_name
+                    );
+                END IF;
+
+                -- Привязка партиции первого уровня
+                EXECUTE format(
+                    'ALTER TABLE %I ATTACH PARTITION %I FOR VALUES IN (%s)',
+                    base_table_name, partition_name, source_id
+                );
+
+                -- Создание партиций второго уровня
+                FOR play_type IN SELECT unnest(ARRAY['MS', 'MD', 'WS', 'WD', 'XD']::play_type_domain[]) LOOP
+                    partition_name_playtype := format('%s_%s', partition_name, play_type);
+
+                    EXECUTE format(
+                        'CREATE TABLE %I PARTITION OF %I FOR VALUES IN (%L)',
+                        partition_name_playtype, partition_name, play_type
+                    );
+
+                    EXECUTE format(
+                        'ALTER TABLE %I ADD CONSTRAINT pk_%s PRIMARY KEY (player_id, import_id, play_type)',
+                        partition_name_playtype, partition_name_playtype
+                    );
+
+                    EXECUTE format(
+                        'CREATE INDEX i_%s__import_position ON %I (import_id, position)',
+                        partition_name_playtype, partition_name_playtype
+                    );
+
+                    EXECUTE format(
+                        'CREATE INDEX i_%s__player_import ON %I (player_id, import_id)',
+                        partition_name_playtype, partition_name_playtype
+                    );
+
+                    EXECUTE format(
+                        'ALTER TABLE %I SET (autovacuum_vacuum_scale_factor = 0.1, autovacuum_analyze_scale_factor = 0.1)',
+                        partition_name_playtype
+                    );
+                END LOOP;
+            END;
+            $$;
+        </sql>
     </changeSet>
 
-    <changeSet id="202504170300-add-rating-index-for-top" author="bogdanovmn">
-        <createIndex tableName="rating" indexName="i_rating__play_type_player_id_import_id">
-            <column name="play_type"/>
-            <column name="player_id"/>
-            <column name="import_id"/>
-        </createIndex>
-        <createIndex tableName="import" indexName="i_import__source_file_date">
-            <column name="source"/>
-            <column name="file_date" descending="true"/>
-        </createIndex>
+    <changeSet id="202504232300-add-top-position-tables" author="bogdanovmn">
+        <sql splitStatements="false" stripComments="false">
+            -- Создание партиционированной таблицы player_global_top_position
+            CREATE TABLE player_global_top_position (
+                player_id UUID NOT NULL,
+                import_id BIGINT NOT NULL,
+                play_type play_type_domain NOT NULL,
+                rating_date TIMESTAMP NOT NULL,
+                rating_value INTEGER NOT NULL,
+                position INTEGER NOT NULL,
+                rating_change INTEGER NOT NULL DEFAULT 0,
+                position_change INTEGER NOT NULL DEFAULT 0,
+                source_id SMALLINT NOT NULL,
+                CONSTRAINT fk_pgtp__player FOREIGN KEY (player_id) REFERENCES player(id),
+                CONSTRAINT fk_pgtp__import FOREIGN KEY (import_id) REFERENCES import(id),
+                CONSTRAINT fk_pgtp__source FOREIGN KEY (source_id) REFERENCES source(id)
+            ) PARTITION BY LIST (source_id);
+
+            -- Создание партиционированной таблицы player_actual_top_position
+            CREATE TABLE player_actual_top_position (
+                player_id UUID NOT NULL,
+                import_id BIGINT NOT NULL,
+                play_type play_type_domain NOT NULL,
+                rating_value INTEGER NOT NULL,
+                position INTEGER NOT NULL,
+                rating_change INTEGER NOT NULL DEFAULT 0,
+                position_change INTEGER NOT NULL DEFAULT 0,
+                source_id SMALLINT NOT NULL,
+                CONSTRAINT fk_patp__player FOREIGN KEY (player_id) REFERENCES player(id),
+                CONSTRAINT fk_patp__import FOREIGN KEY (import_id) REFERENCES import(id),
+                CONSTRAINT fk_patp__source FOREIGN KEY (source_id) REFERENCES source(id)
+            ) PARTITION BY LIST (source_id);
+        </sql>
     </changeSet>
+    <changeSet id="202504232300-add-top-position-tables-partitions" author="bogdanovmn">
+        <sql splitStatements="false" stripComments="false">
+            CALL create_partition_for_source('player_global_top_position', 1, 'RNBF');
+            CALL create_partition_for_source('player_global_top_position', 2, 'RNBFJunior');
+            CALL create_partition_for_source('player_global_top_position', 3, 'RNBFVeteran');
 
-    <changeSet id="202504211200-add-top-position-tables" author="bogdanovmn">
-        <createTable tableName="player_actual_top_position">
-            <column name="player_id" type="UUID">
-                <constraints nullable="false"/>
-            </column>
-            <column name="import_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="play_type" type="play_type_domain">
-                <constraints nullable="false"/>
-            </column>
-            <column name="rating_value" type="integer">
-                <constraints nullable="false"/>
-            </column>
-            <column name="position" type="integer">
-                <constraints nullable="false"/>
-            </column>
-            <column name="rating_change" type="bigint" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
-            <column name="position_change" type="integer" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <addPrimaryKey
-                tableName="player_actual_top_position"
-                columnNames="player_id, play_type, import_id"
-                constraintName="pk_player_actual_top_position"/>
-        <addForeignKeyConstraint
-                baseTableName="player_actual_top_position"
-                baseColumnNames="player_id"
-                constraintName="fk_player_actual_top_position_player"
-                referencedTableName="player"
-                referencedColumnNames="id"/>
-        <addForeignKeyConstraint
-                baseTableName="player_actual_top_position"
-                baseColumnNames="import_id"
-                constraintName="fk_player_actual_top_position_import"
-                referencedTableName="import"
-                referencedColumnNames="id"/>
-
-        <createTable tableName="player_global_top_position">
-            <column name="player_id" type="UUID">
-                <constraints nullable="false"/>
-            </column>
-            <column name="import_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="play_type" type="play_type_domain">
-                <constraints nullable="false"/>
-            </column>
-            <column name="rating_date" type="timestamp">
-                <constraints nullable="false"/>
-            </column>
-            <column name="rating_value" type="integer">
-                <constraints nullable="false"/>
-            </column>
-            <column name="position" type="integer">
-                <constraints nullable="false"/>
-            </column>
-            <column name="rating_change" type="bigint" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
-            <column name="position_change" type="integer" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <addPrimaryKey
-                tableName="player_global_top_position"
-                columnNames="player_id, play_type, import_id"
-                constraintName="pk_player_global_top_position"/>
-        <addForeignKeyConstraint
-                baseTableName="player_global_top_position"
-                baseColumnNames="player_id"
-                constraintName="fk_player_global_top_position_player"
-                referencedTableName="player"
-                referencedColumnNames="id"/>
-        <addForeignKeyConstraint
-                baseTableName="player_global_top_position"
-                baseColumnNames="import_id"
-                constraintName="fk_player_global_top_position_import"
-                referencedTableName="import"
-                referencedColumnNames="id"/>
+            CALL create_partition_for_source('player_actual_top_position', 1, 'RNBF');
+            CALL create_partition_for_source('player_actual_top_position', 2, 'RNBFJunior');
+            CALL create_partition_for_source('player_actual_top_position', 3, 'RNBFVeteran');
+        </sql>
     </changeSet>
-
 </databaseChangeLog>

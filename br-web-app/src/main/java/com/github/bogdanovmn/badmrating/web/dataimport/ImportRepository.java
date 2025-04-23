@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.badmrating.web.dataimport;
 
 import com.github.bogdanovmn.badmrating.core.ArchiveFile;
+import com.github.bogdanovmn.badmrating.web.common.domain.Source;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -19,19 +20,19 @@ class ImportRepository {
 
     enum Status { SUCCESS, FAILED, IN_PROGRESS }
 
-    LocalDate latestSuccessful(String source) {
+    LocalDate latestSuccessful(Source source) {
         return jdbc.queryForObject(
-            "SELECT MAX(file_date) FROM import WHERE source = ?",
+            "SELECT MAX(file_date) FROM import WHERE source_id = ?",
             LocalDate.class,
-            source
+            source.getId()
         );
     }
 
-    Long create(String sourceId, ArchiveFile archiveFile, String url) {
+    Long create(Source source, ArchiveFile archiveFile, String url) {
         return jdbc.queryForObject(
-            "INSERT INTO import (source, url, file_date, started_at, status) VALUES (?, ?, ?, ?, ?) RETURNING id",
+            "INSERT INTO import (source_id, url, file_date, started_at, status) VALUES (?, ?, ?, ?, ?) RETURNING id",
                 Long.class,
-                sourceId,
+                source.getId(),
                 url,
                 archiveFile.date(),
                 LocalDateTime.now(),

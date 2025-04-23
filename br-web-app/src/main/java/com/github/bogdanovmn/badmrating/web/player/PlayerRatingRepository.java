@@ -1,12 +1,12 @@
 package com.github.bogdanovmn.badmrating.web.player;
 
+import com.github.bogdanovmn.badmrating.core.PlayType;
+import com.github.bogdanovmn.badmrating.web.common.domain.Source;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-import com.github.bogdanovmn.badmrating.core.PlayType;
-
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,10 +24,10 @@ class PlayerRatingRepository {
                 SELECT
                     r.play_type,
                     i.file_date,
-                    i.source,
+                    i.source_id,
                     r.value,
-                    LAG(r.value) OVER (PARTITION BY r.play_type, i.source ORDER BY i.file_date) AS prev_value,
-                    ROW_NUMBER() OVER (PARTITION BY r.play_type, i.source ORDER BY i.file_date) AS rn,
+                    LAG(r.value) OVER (PARTITION BY r.play_type, i.source_id ORDER BY i.file_date) AS prev_value,
+                    ROW_NUMBER() OVER (PARTITION BY r.play_type, i.source_id ORDER BY i.file_date) AS rn,
                     COUNT(*) OVER (PARTITION BY r.play_type) AS total_count
                 FROM rating r
                 JOIN import i ON r.import_id = i.id
@@ -36,7 +36,7 @@ class PlayerRatingRepository {
             SELECT
                 play_type,
                 file_date,
-                source,
+                source_id,
                 value
             FROM ranked_ratings
             WHERE
@@ -49,7 +49,7 @@ class PlayerRatingRepository {
                 .value(rs.getInt("value"))
                 .playType(PlayType.valueOf(rs.getString("play_type")))
                 .date(rs.getTimestamp("file_date").toLocalDateTime().toLocalDate())
-                .source(rs.getString("source"))
+                .source(Source.byId(rs.getInt("source_id")))
             .build()
         );
     }
@@ -57,11 +57,10 @@ class PlayerRatingRepository {
     @Value
     @Builder
     static class PlayerRatingQueryResultRow {
+
         int value;
         PlayType playType;
         LocalDate date;
-        String source;
+        Source source;
     }
-
-
 }

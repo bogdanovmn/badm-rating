@@ -5,7 +5,7 @@ import com.github.bogdanovmn.badmrating.core.PersonalRating;
 import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRepository;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
-import com.github.bogdanovmn.badmrating.web.statistic.PlayersStatisticRepository;
+import com.github.bogdanovmn.badmrating.web.top.TopPlayersRepository;
 import com.github.bogdanovmn.common.log.Timer;
 import com.github.bogdanovmn.humanreadablevalues.MillisecondsValue;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +26,10 @@ import java.util.UUID;
 @Slf4j
 class DataSyncService {
     private final PlayerRepository playerRepository;
-    private final PlayersStatisticRepository playersStatisticRepository;
+    private final TopPlayersRepository topPlayersRepository;
 
     @Transactional(rollbackFor = Exception.class)
-    public void processFile(Long importId, ArchiveFile archiveFile) throws IOException {
+    public int processFile(Long importId, ArchiveFile archiveFile) throws IOException {
         Timer timer = Timer.start();
         Map<Player, List<PersonalRating>> ratingByPlayer = new HashMap<>();
         for (PersonalRating rating : archiveFile.content()) {
@@ -52,16 +52,17 @@ class DataSyncService {
             playerRepository.addRatingsBulk(importId, playersRatingToSave);
         }
         log.info("Imported {} players and {} rates in {}", playersCount, ratesCount, new MillisecondsValue(timer.durationInMills()).fullString());
+        return ratesCount;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void playersTopCalculate(long importId) {
         Timer timer = Timer.start();
-        int rows = playersStatisticRepository.updatePlayersActualTop(importId);
+        int rows = topPlayersRepository.updatePlayersActualTop(importId);
         log.info("Updated players actual top in {} ({} rows)", new MillisecondsValue(timer.durationInMills()).fullString(), rows);
 
         timer = Timer.start();
-        rows = playersStatisticRepository.updatePlayersGlobalTop(importId);
+        rows = topPlayersRepository.updatePlayersGlobalTop(importId);
         log.info("Updated players global top in {} ({} rows)", new MillisecondsValue(timer.durationInMills()).fullString(), rows);
     }
 

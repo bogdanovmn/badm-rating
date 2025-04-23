@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.badmrating.web.player;
 
 import com.github.bogdanovmn.badmrating.core.PlayType;
+import com.github.bogdanovmn.badmrating.web.common.domain.Source;
 import com.github.bogdanovmn.badmrating.web.player.PlayerRatingRepository.PlayerRatingQueryResultRow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 class PlayerRatingService {
     private final PlayerRatingRepository playerRatingRepository;
 
-    private record SourcePlayTypeKey(String source, PlayType playType) {}
+    private record SourcePlayTypeKey(Source source, PlayType playType) {}
 
     List<PlayerRating> playerRatingHistory(UUID playerId) {
         return playerRatingRepository.playerRatingHistory(playerId)
