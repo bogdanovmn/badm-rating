@@ -18,7 +18,7 @@ class TopPlayersService {
 
     @Value("${top-players.size:50}")
     private int topSize;
-    @Value("${top-players.context.size:1}")
+    @Value("${top-players.context.size:3}")
     private int topContextSize;
 
     public List<PlayerTopPosition> playersTop(Source source, PlayType playType, TopType topType) {

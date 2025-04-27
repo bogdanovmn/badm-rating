@@ -57,7 +57,6 @@ class PlayerRatingRepository {
     @Value
     @Builder
     static class PlayerRatingQueryResultRow {
-
         int value;
         PlayType playType;
         LocalDate date;

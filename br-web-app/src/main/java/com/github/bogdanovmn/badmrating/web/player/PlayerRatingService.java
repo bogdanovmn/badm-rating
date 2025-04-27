@@ -17,7 +17,7 @@ class PlayerRatingService {
 
     private record SourcePlayTypeKey(Source source, PlayType playType) {}
 
-    List<PlayerRating> playerRatingHistory(UUID playerId) {
+    List<PlayerRatingHistory> playerRatingHistory(UUID playerId) {
         return playerRatingRepository.playerRatingHistory(playerId)
             .stream().collect(Collectors.groupingBy(
                 row -> new SourcePlayTypeKey(row.getSource(), row.getPlayType()),
@@ -30,7 +30,7 @@ class PlayerRatingService {
                 )
             ))
             .entrySet().stream()
-            .map(entry -> PlayerRating.builder()
+            .map(entry -> PlayerRatingHistory.builder()
                 .source(entry.getKey().source)
                 .playType(entry.getKey().playType)
                 .data(entry.getValue())

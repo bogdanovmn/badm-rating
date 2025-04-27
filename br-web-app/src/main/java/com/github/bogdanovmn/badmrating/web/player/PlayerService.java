@@ -21,12 +21,11 @@ class PlayerService {
     }
 
     List<PlayerSearchResult> similarities(UUID playerId) {
-        PlayerSearchResult player = playerRepository.getById(playerId);
-        if (player == null) {
-            throw new NoSuchElementException(
+        PlayerSearchResult player = playerRepository.getById(playerId).orElseThrow(
+            () -> new NoSuchElementException(
                 String.format("Player with id %s not found", playerId)
-            );
-        }
+            )
+        );
         List<PlayerSearchResult> candidates = playerRepository.findSimilaritiesCandidates(
             player.getDetails().getName()
         );

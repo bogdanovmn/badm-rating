@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Value
 @Builder
-class PlayerRating {
+class PlayerRatingHistory {
     Source source;
     PlayType playType;
     Map<LocalDate, Integer> data;

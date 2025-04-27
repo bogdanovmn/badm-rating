@@ -74,8 +74,8 @@ public class PlayerRepository {
         ).findFirst();
     }
 
-    public PlayerSearchResult getById(UUID playerId) {
-        return jdbc.queryForObject("""
+    public Optional<PlayerSearchResult> getById(UUID playerId) {
+        return jdbc.query("""
             SELECT p.id, p.name, p.year, r.short_name region, p.rank, p.import_id
             FROM player p
             LEFT JOIN region r ON r.id = p.region_id
@@ -83,7 +83,7 @@ public class PlayerRepository {
             """,
             Map.of("playerId", playerId),
             PLAYER_SEARCH_RESULT_ROW_MAPPER
-        );
+        ).stream().findFirst();
     }
 
     public List<PlayerSearchResult> findSimilaritiesCandidates(String name) {

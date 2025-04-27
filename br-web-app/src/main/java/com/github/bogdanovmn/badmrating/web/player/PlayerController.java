@@ -20,8 +20,8 @@ class PlayerController {
     private final PlayerRatingService playerRatingService;
     private final PlayerService playerService;
 
-    @GetMapping("{id}")
-    List<PlayerRating> playerRating(@PathVariable("id") UUID playerId) {
+    @GetMapping("{id}/rating-history")
+    List<PlayerRatingHistory> playerRating(@PathVariable("id") UUID playerId) {
         return playerRatingService.playerRatingHistory(playerId);
     }
 
