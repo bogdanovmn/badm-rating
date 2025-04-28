@@ -89,22 +89,34 @@ public class TopPlayersRepository {
                 WHERE t.player_id = :playerId
                   AND t.play_type = :playType
             ),
-            context_players AS (
+            base_players AS (
                 SELECT
                     t.player_id,
                     t.import_id,
-                    %s rating_date,
+                    %s AS rating_date,
                     t.rating_value,
                     t.position,
                     t.rating_change,
-                    t.position_change
+                    t.position_change,
+                    ABS(t.position - (SELECT position FROM player_position)) AS position_diff
                 FROM player_%s_top_position t
                 JOIN last_import li ON li.id = t.import_id
                 WHERE t.play_type = :playType
                   AND EXISTS (SELECT 1 FROM player_position)
-                  AND t.position BETWEEN
-                      (SELECT position FROM player_position) - :contextSize
-                      AND (SELECT position FROM player_position) + :contextSize
+            ),
+            ranked_players AS (
+                SELECT *,
+                    ROW_NUMBER() OVER (
+                        ORDER BY
+                            CASE WHEN player_id = :playerId THEN 0 ELSE 1 END,  -- Сначала целевой игрок
+                            position_diff,
+                            position_change DESC
+                    ) AS global_rank
+                FROM base_players
+                WHERE
+                    -- Либо это наш игрок, либо попадает в топ-12 ближайших
+                    player_id = :playerId OR
+                    (player_id != :playerId AND position_diff <= :contextSize)
             )
             SELECT
                 p.id,
@@ -113,14 +125,15 @@ public class TopPlayersRepository {
                 r.short_name AS region,
                 p.rank,
                 p.import_id,
-                cp.rating_date,
-                cp.rating_value,
-                cp.position,
-                cp.rating_change,
-                cp.position_change
-            FROM context_players cp
-            JOIN player p ON p.id = cp.player_id
-            LEFT JOIN region r ON r.id = p.region_id;
+                rp.rating_date,
+                rp.rating_value,
+                rp.position,
+                rp.rating_change,
+                rp.position_change
+            FROM ranked_players rp
+            JOIN player p ON p.id = rp.player_id
+            LEFT JOIN region r ON r.id = p.region_id
+            WHERE rp.global_rank <= 1 + :contextSize * 3
             """.formatted(
                 topType.name(),
                 topType == global ? "t.rating_date" : "li.file_date",
