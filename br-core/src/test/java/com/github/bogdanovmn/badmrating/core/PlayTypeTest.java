@@ -13,7 +13,6 @@ class PlayTypeTest {
     @ParameterizedTest
     @MethodSource("testCasesProvider")
     void shouldCorrectlyIdentifyPlayType(String input, PlayType expected) {
-//        assertEquals(PlayType.XD, PlayType.of("XD"));
         assertEquals(expected, PlayType.of(input));
     }
 
@@ -32,34 +31,34 @@ class PlayTypeTest {
             Arguments.of("ЖП", PlayType.WD),
             Arguments.of("WD", PlayType.WD),
             Arguments.of("wd", PlayType.WD),
-            Arguments.of("МС", PlayType.XD),
-            Arguments.of("ЖС", PlayType.XD),
-            Arguments.of("XD", PlayType.UNKNOWN),
-            Arguments.of("xd", PlayType.UNKNOWN),
-            Arguments.of("XD(M)", PlayType.XD),
-            Arguments.of("XD(W)", PlayType.XD),
-            Arguments.of("XD_M", PlayType.XD),
-            Arguments.of("XD_W", PlayType.XD),
+            Arguments.of("МС", PlayType.MXD),
+            Arguments.of("ЖС", PlayType.WXD),
+            Arguments.of("XD", null),
+            Arguments.of("xd", null),
+            Arguments.of("XD(M)", PlayType.MXD),
+            Arguments.of("XD(W)", PlayType.WXD),
+            Arguments.of("XD_M", PlayType.MXD),
+            Arguments.of("XD_W", PlayType.WXD),
 
             // Частичные совпадения
-            Arguments.of("XD_W 05-06", PlayType.XD),
+            Arguments.of("XD_W 05-06", PlayType.WXD),
             Arguments.of(" MD 07 и моложе", PlayType.MD),
-            Arguments.of("Категория XD(W)", PlayType.XD),
-            Arguments.of("SomeTextMD", PlayType.UNKNOWN),
+            Arguments.of("Категория XD(W)", PlayType.WXD),
+            Arguments.of("SomeTextMD", null),
             Arguments.of("WS-2023", PlayType.WS),
-            Arguments.of("97-моложе XD_M", PlayType.XD),
+            Arguments.of("97-моложе XD_M", PlayType.MXD),
 
             // Неправильные/неизвестные значения
-            Arguments.of("invalid", PlayType.UNKNOWN),
-            Arguments.of("XYZ", PlayType.UNKNOWN),
-            Arguments.of("", PlayType.UNKNOWN),
-            Arguments.of("   ", PlayType.UNKNOWN),
-            Arguments.of("XD(OШИБ)", PlayType.UNKNOWN),
+            Arguments.of("invalid", null),
+            Arguments.of("XYZ", null),
+            Arguments.of("", null),
+            Arguments.of("   ", null),
+            Arguments.of("XD(OШИБ)", null),
 
             // Граничные случаи
-            Arguments.of(null, PlayType.UNKNOWN),
-            Arguments.of("МОЖО", PlayType.UNKNOWN), // Не должно совпадать с "МО" + "ЖО"
-            Arguments.of("X D", PlayType.UNKNOWN)   // Пробел внутри
+            Arguments.of(null, null),
+            Arguments.of("МОЖО", null), // Не должно совпадать с "МО" + "ЖО"
+            Arguments.of("X D", null)   // Пробел внутри
         );
     }
 }

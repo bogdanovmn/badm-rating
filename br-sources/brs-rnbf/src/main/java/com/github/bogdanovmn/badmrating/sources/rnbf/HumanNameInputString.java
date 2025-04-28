@@ -1,9 +1,12 @@
 package com.github.bogdanovmn.badmrating.sources.rnbf;
 
+import com.github.bogdanovmn.badmrating.core.PlayType;
 import lombok.RequiredArgsConstructor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.github.bogdanovmn.badmrating.core.PlayType.Sex.FEMALE;
 
 @RequiredArgsConstructor
 public class HumanNameInputString {
@@ -23,7 +26,7 @@ public class HumanNameInputString {
 
     private final String input;
 
-    public String normalized() {
+    public String normalized(PlayType.Sex sex) {
         return convertToFullName(
             normalizeFirstLetter(
                 input.trim()
@@ -37,7 +40,8 @@ public class HumanNameInputString {
                     .replaceAll("([Кк])ирил([^л]|$)", "$1ирилл$2")
                     .replaceAll("\\d+$", "")
                     .trim()
-            )
+            ),
+            sex
         );
     }
 
@@ -48,15 +52,14 @@ public class HumanNameInputString {
             : name;
     }
 
-    private static String convertToFullName(String name) {
+    private static String convertToFullName(String name, PlayType.Sex sex) {
         return name
             // Мужские имена
-            .replaceFirst("Саша$", "Александр")
+            .replaceFirst("Саша$", FEMALE == sex ? "Александра" : "Александр")
             .replaceFirst("Леша$", "Алексей")
             .replaceFirst("Тема$", "Артем")
             .replaceFirst("Боря$", "Борис")
             .replaceFirst("Вадик$", "Вадим")
-//            .replaceFirst("Валя$", "Валентин")
             .replaceFirst("Вася$", "Василий")
             .replaceFirst("Витя$", "Виктор")
             .replaceFirst("Виталик$", "Виталий")
@@ -65,11 +68,11 @@ public class HumanNameInputString {
             .replaceFirst("Слава$", "Вячеслав")
             .replaceFirst("Жора$", "Георгий")
             .replaceFirst("Гриша$", "Григорий")
-//            .replaceFirst("Даня$", "Даниил")
+            .replaceFirst("Даня$", FEMALE == sex ? "Даниила" : "Даниил")
             .replaceFirst("Данил$", "Даниил")
             .replaceFirst("Дэн$", "Денис")
             .replaceFirst("Дима$", "Дмитрий")
-//            .replaceFirst("Женя$", "Евгений")
+            .replaceFirst("Женя$", FEMALE == sex ? "Евгения" : "Евгений")
             .replaceFirst("Ваня$", "Иван")
             .replaceFirst("Костя$", "Константин")
             .replaceFirst("Лева$", "Лев")
@@ -90,7 +93,7 @@ public class HumanNameInputString {
             .replaceFirst("Настя$", "Анастасия")
             .replaceFirst("Аня$", "Анна")
             .replaceFirst("Тоня$", "Антонина")
-//            .replaceFirst("Валя$", "Валентина")
+            .replaceFirst("Валя$", FEMALE == sex ? "Валентина" :"Валентин")
             .replaceFirst("Варя$", "Варвара")
             .replaceFirst("Ника$", "Вероника")
             .replaceFirst("Вика$", "Виктория")
@@ -99,7 +102,6 @@ public class HumanNameInputString {
             .replaceFirst("Катя$", "Екатерина")
             .replaceFirst("Катерина$", "Екатерина")
             .replaceFirst("Лена$", "Елена")
-//            .replaceFirst("Алена$", "Елена")
             .replaceFirst("Лиза$", "Елизавета")
             .replaceFirst("Ира$", "Ирина")
             .replaceFirst("Клава$", "Клавдия")
@@ -121,6 +123,7 @@ public class HumanNameInputString {
             .replaceFirst("Света$", "Светлана")
             .replaceFirst("Соня$", "София")
             .replaceFirst("Софья$", "София")
+            .replaceFirst("Стася$", "Станислава")
             .replaceFirst("Тома$", "Тамара")
             .replaceFirst("Таня$", "Татьяна")
             .replaceFirst("Уля$", "Ульяна")

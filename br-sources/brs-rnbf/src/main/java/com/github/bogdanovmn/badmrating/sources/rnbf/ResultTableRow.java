@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.badmrating.sources.rnbf;
 
 import com.github.bogdanovmn.badmrating.core.PersonalRating;
+import com.github.bogdanovmn.badmrating.core.PlayType;
 import com.github.bogdanovmn.badmrating.core.Player;
 import com.github.bogdanovmn.badmrating.core.PlayerRank;
 import com.github.bogdanovmn.badmrating.core.excel.ExcelCell;
@@ -30,7 +31,13 @@ class ResultTableRow {
     Optional<PersonalRating> fetch() {
         String name = Optional.ofNullable(
             row.cellStringValue(header.nameIndex())
-        ).map(n -> new HumanNameInputString(n).normalized())
+        ).map(n -> {
+            String newName = new HumanNameInputString(n).normalized(header.getPlayType().getSex());
+            if (!newName.equals(n)) {
+                log.info("Normalize {} name '{}' to '{}'", header.getPlayType().getSex(), n, newName);
+            }
+            return newName;
+        })
             .orElse(null);
         if (name == null) {
             log.warn("Can't find proper name. Skip record #{}", row.index());
@@ -105,7 +112,11 @@ class ResultTableRow {
                         .year(year)
                     .build()
                 )
-                .type(header.getPlayType())
+                .type(
+                    header.getPlayType() == PlayType.WXD || header.getPlayType() == PlayType.MXD
+                        ? PlayType.XD
+                        : header.getPlayType()
+                )
                 .value(rating)
             .build()
         );

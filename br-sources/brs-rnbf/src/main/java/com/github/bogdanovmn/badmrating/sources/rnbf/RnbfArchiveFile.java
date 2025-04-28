@@ -16,8 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.github.bogdanovmn.badmrating.core.PlayType.UNKNOWN;
-
 @Slf4j
 public class RnbfArchiveFile extends ArchiveFile {
 
@@ -56,7 +54,7 @@ public class RnbfArchiveFile extends ArchiveFile {
         List<PersonalRating> result = new ArrayList<>();
         for (String sheetName : excel.sheets()) {
             PlayType type = PlayType.of(sheetName.trim());
-            if (UNKNOWN == type) {
+            if (null == type) {
                 if (!SHEETS_TO_SKIP.contains(sheetName)) {
                     log.warn("Unknown play type: {}, skip it", sheetName);
                 }

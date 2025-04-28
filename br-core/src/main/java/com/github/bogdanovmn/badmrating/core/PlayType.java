@@ -1,20 +1,32 @@
 package com.github.bogdanovmn.badmrating.core;
 
+import lombok.Getter;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public enum PlayType {
-    MS("МО", "MS"), MD("МП", "MD"),
-    WS("ЖО", "WS"), WD("ЖП", "WD"),
-    XD("МС", "ЖС", "XD(M)", "XD(W)", "XD_M", "XD_W", "СПМ", "СПЖ"),
-    UNKNOWN;
+import static com.github.bogdanovmn.badmrating.core.PlayType.Sex.FEMALE;
+import static com.github.bogdanovmn.badmrating.core.PlayType.Sex.MALE;
+import static com.github.bogdanovmn.badmrating.core.PlayType.Sex.MIXED;
 
+public enum PlayType {
+    MS(MALE, "МО", "MS"), MD(MALE, "МП", "MD"),
+    WS(FEMALE, "ЖО", "WS"), WD(FEMALE,"ЖП", "WD"),
+    XD(MIXED, "!NOT FOR PARSING!"),
+    MXD(MALE, "МС", "XD(M)", "XD_M", "СПМ"),
+    WXD(FEMALE, "ЖС", "XD(W)", "XD_W", "СПЖ");
+
+    @Getter
+    private final Sex sex;
     private final Set<String> possibleTitles;
     private final Set<Pattern> patterns;
 
-    PlayType(String... possibleTitles) {
+    public enum Sex { MALE, FEMALE, MIXED }
+
+    PlayType(Sex sex, String... possibleTitles) {
+        this.sex = sex;
         this.possibleTitles = new HashSet<>(List.of(possibleTitles));
         this.patterns = new HashSet<>();
         for (String title : possibleTitles) {
@@ -25,7 +37,7 @@ public enum PlayType {
 
     public static PlayType of(String rawName) {
         if (rawName == null || rawName.trim().isEmpty()) {
-            return UNKNOWN;
+            return null;
         }
         String name = rawName.toUpperCase().trim();
         for (PlayType type : values()) {
@@ -40,6 +52,6 @@ public enum PlayType {
                 }
             }
         }
-        return UNKNOWN;
+        return null;
     }
 }

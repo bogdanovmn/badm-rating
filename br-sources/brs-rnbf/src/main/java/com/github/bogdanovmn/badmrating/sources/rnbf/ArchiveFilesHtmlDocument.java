@@ -22,12 +22,14 @@ class ArchiveFilesHtmlDocument extends HtmlDocument {
         for (Element block : blocks) {
             String href = block.attr("href");
             String text = block.text();
-            ArchiveFileExternal file = ArchiveFileExternal.of(
-                href.startsWith("/")
-                    ? urlPrefix + href
-                    : href,
-                text
-            );
+            ArchiveFileExternal file = text.toLowerCase().contains("ветеранский")
+                ? null
+                : ArchiveFileExternal.of(
+                    href.startsWith("/")
+                        ? urlPrefix + href
+                        : href,
+                    text
+                );
             if (file != null) {
                 result.add(file);
             }
