@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -38,5 +40,15 @@ class TopPlayersController {
         @RequestParam("playType") PlayType playType
     ) {
         return topPlayersService.playerTopContext(playerId, source, playType, topType);
+    }
+
+    @GetMapping("{topType}/position-history")
+    Map<LocalDate, Integer> getPlayerTopPositionHistory(
+        @PathVariable("topType") TopType topType,
+        @RequestParam("playerId") UUID playerId,
+        @RequestParam("source") Source source,
+        @RequestParam("playType") PlayType playType
+    ) {
+        return topPlayersService.playerTopPositionHistory(playerId, source, playType, topType);
     }
 }

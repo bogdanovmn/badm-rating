@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -58,6 +59,7 @@ public class TopPlayersRepository {
             JOIN player p ON p.id = t.player_id
             LEFT JOIN region r ON r.id = p.region_id
             WHERE t.play_type = :playType
+              AND t.source_id = (SELECT source_id FROM last_import)
               AND t.position <= :limit
             ORDER BY t.position, p.name, p.id
             """.formatted(
@@ -88,6 +90,7 @@ public class TopPlayersRepository {
                 JOIN last_import li ON li.id = t.import_id
                 WHERE t.player_id = :playerId
                   AND t.play_type = :playType
+                  AND t.source_id = (SELECT source_id FROM last_import)
             ),
             base_players AS (
                 SELECT
@@ -103,6 +106,7 @@ public class TopPlayersRepository {
                 JOIN last_import li ON li.id = t.import_id
                 WHERE t.play_type = :playType
                   AND EXISTS (SELECT 1 FROM player_position)
+                  AND t.source_id = (SELECT source_id FROM last_import)
             ),
             ranked_players AS (
                 SELECT *,
@@ -152,7 +156,7 @@ public class TopPlayersRepository {
     public int updatePlayersActualTop(long importId) {
         return jdbc.update("""
             WITH current_import AS (
-              SELECT source_id, file_date
+              SELECT id, source_id, file_date
               FROM import
               WHERE id = :importId
             ),
@@ -165,17 +169,14 @@ public class TopPlayersRepository {
               LIMIT 1
             ),
             prev_positions AS (
-              SELECT DISTINCT ON (patp.player_id, patp.play_type)
-                  patp.player_id,
-                  patp.play_type,
-                  patp.position,
-                  r.value
-              FROM player_actual_top_position patp
-              JOIN prev_import pi ON patp.import_id = pi.id
-              JOIN rating r ON r.player_id = patp.player_id
-                  AND r.import_id = patp.import_id
-                  AND r.play_type = patp.play_type
-              ORDER BY patp.player_id, patp.play_type, r.value DESC
+              SELECT
+                  t.player_id,
+                  t.play_type,
+                  t.position,
+                  t.rating_value
+              FROM player_actual_top_position t
+              JOIN prev_import pi ON t.import_id = pi.id
+              WHERE t.source_id = (SELECT source_id FROM current_import)
             ),
             max_ratings AS (
               SELECT DISTINCT ON (r.player_id, r.play_type)
@@ -190,7 +191,6 @@ public class TopPlayersRepository {
             ranked_players AS (
               SELECT
                   mr.player_id,
-                  mr.import_id,
                   mr.play_type,
                   DENSE_RANK() OVER (PARTITION BY mr.play_type ORDER BY mr.value DESC) AS position,
                   mr.value
@@ -200,18 +200,18 @@ public class TopPlayersRepository {
             SELECT
               (SELECT source_id FROM current_import),
               rp.player_id,
-              rp.import_id,
+              (SELECT id FROM current_import),
               rp.play_type,
               rp.position,
               rp.value,
               CASE
-                  WHEN pp.value IS NULL THEN 0
-                  ELSE rp.value - COALESCE(pp.value, 0)
+                  WHEN pp.rating_value IS NULL THEN 0
+                  ELSE rp.value - pp.rating_value
               END rating_change,
             
               CASE
                   WHEN pp.position IS NULL THEN 0
-                  ELSE COALESCE(pp.position, 0) - rp.position
+                  ELSE pp.position - rp.position
               END position_change
             FROM ranked_players rp
             LEFT JOIN prev_positions pp ON pp.player_id = rp.player_id AND rp.play_type = pp.play_type
@@ -223,7 +223,7 @@ public class TopPlayersRepository {
     public int updatePlayersGlobalTop(long importId) {
         return jdbc.update("""
             WITH current_import AS (
-              SELECT source_id, file_date
+              SELECT id, source_id, file_date
               FROM import
               WHERE id = :importId
             ),
@@ -235,41 +235,35 @@ public class TopPlayersRepository {
               ORDER BY i.file_date DESC
               LIMIT 1
             ),
-            prev_positions AS (
-                SELECT DISTINCT ON (pgtp.player_id, pgtp.play_type)
-                    pgtp.player_id,
-                    pgtp.play_type,
-                    pgtp.position,
-                    r.value
-                FROM player_global_top_position pgtp
-                JOIN prev_import pi ON pgtp.import_id = pi.id
-                JOIN rating r ON
-                    r.player_id = pgtp.player_id
-                    AND r.import_id = pgtp.import_id
-                    AND r.play_type = pgtp.play_type
-                ORDER BY pgtp.player_id, pgtp.play_type, r.value DESC
+            prev_top AS (
+                SELECT
+                    t.player_id,
+                    t.play_type,
+                    t.position,
+                    t.rating_value,
+                    t.rating_date
+                FROM player_global_top_position t
+                WHERE t.source_id = (SELECT source_id FROM current_import)
+                AND t.import_id = (SELECT id FROM prev_import)
             ),
             latest_ratings AS (
               SELECT DISTINCT ON (r.player_id, r.play_type)
                   r.player_id,
-                  r.import_id,
                   r.play_type,
                   r.value,
                   i.file_date
               FROM rating r
-              JOIN import i ON i.id = r.import_id
-              JOIN current_import ci ON i.source_id = ci.source_id
-              WHERE i.file_date <= ci.file_date
-              ORDER BY r.player_id, r.play_type, i.file_date DESC
+              JOIN import i ON r.import_id = i.id
+              WHERE i.source_id = (SELECT source_id FROM current_import)
+              ORDER BY r.player_id, r.play_type, i.file_date DESC, r.value DESC
             ),
             ranked_players AS (
               SELECT
                   lr.player_id,
-                  lr.import_id,
                   lr.play_type,
                   DENSE_RANK() OVER (PARTITION BY lr.play_type ORDER BY lr.value DESC) AS position,
-                  lr.value,
-                  lr.file_date
+                  lr.file_date rating_date,
+                  lr.value rating_value
               FROM latest_ratings lr
             )
             INSERT INTO player_global_top_position (source_id, player_id, import_id, play_type, position, rating_value, rating_date, rating_change, position_change)
@@ -279,22 +273,58 @@ public class TopPlayersRepository {
               :importId,
               rp.play_type,
               rp.position,
-              rp.value,
-              rp.file_date,
-            
+              rp.rating_value,
+              rp.rating_date,
+ 
               CASE
-                  WHEN pp.value IS NULL THEN 0
-                  ELSE rp.value - COALESCE(pp.value, 0)
+                  WHEN pt.rating_value IS NULL THEN 0
+                  ELSE rp.rating_value - pt.rating_value
               END rating_change,
             
               CASE
-                  WHEN pp.position IS NULL THEN 0
-                  ELSE COALESCE(pp.position, 0) - rp.position
+                  WHEN pt.position IS NULL THEN 0
+                  ELSE pt.position - rp.position
               END position_change
             FROM ranked_players rp
-            LEFT JOIN prev_positions pp ON pp.player_id = rp.player_id AND rp.play_type = pp.play_type;
+            LEFT JOIN prev_top pt ON pt.player_id = rp.player_id AND rp.play_type = pt.play_type
             """,
             Map.of("importId", importId)
         );
     }
+
+    List<TopPositionHistoryRow> topPositionHistory(TopType topType, UUID playerId, Source source, PlayType playType) {
+        return jdbc.query("""
+            WITH ranked_positions AS (
+                SELECT
+                    i.file_date AS updated_at,
+                    t.position,
+                    LAG(t.position) OVER (ORDER BY i.file_date) AS prev_position,
+                    ROW_NUMBER() OVER (ORDER BY i.file_date) AS rn,
+                    COUNT(*) OVER () AS total_count
+                FROM player_%s_top_position t
+                JOIN import i ON i.id = t.import_id
+                WHERE t.source_id = :sourceId
+                  AND t.play_type = :playType
+                  AND t.player_id = :playerId
+            )
+            SELECT
+                updated_at,
+                position
+            FROM ranked_positions
+            WHERE rn = 1
+            OR rn = total_count
+            OR position != prev_position
+            """.formatted(
+                topType.name()
+            ),
+            Map.of(
+                "playerId", playerId,
+                "sourceId", source.getId(),
+                "playType", playType.toString()
+            ),
+            (rs, rowNum) -> new TopPositionHistoryRow(rs.getTimestamp("updated_at").toLocalDateTime().toLocalDate(), rs.getInt("position"))
+        );
+    }
+
+    record TopPositionHistoryRow(LocalDate positionDate, int position) {}
 }
