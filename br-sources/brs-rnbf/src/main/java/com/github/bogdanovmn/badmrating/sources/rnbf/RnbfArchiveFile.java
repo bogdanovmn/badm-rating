@@ -44,11 +44,12 @@ public class RnbfArchiveFile extends ArchiveFile {
         try {
             excel = new ExcelFile(Files.newInputStream(path, StandardOpenOption.READ));
         } catch (IOException ex) {
-            log.error("Open file error: {} ({})", ex.getMessage(), ex.getClass());
-            return Collections.emptyList();
+            throw new RuntimeException(
+                "Open file error: %s (%s)"
+                    .formatted(ex.getMessage(), ex.getClass())
+            );
         } catch (OldExcelFormatException ex) {
-            log.error("File format is not supported: {}", ex.getMessage());
-            return Collections.emptyList();
+            throw new RuntimeException("File format is not supported: " + ex.getMessage());
         }
         log.debug(excel.sheets().toString());
         List<PersonalRating> result = new ArrayList<>();
