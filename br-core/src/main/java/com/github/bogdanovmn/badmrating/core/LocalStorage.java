@@ -41,7 +41,7 @@ public class LocalStorage {
         init();
         try (SimpleHttpClient httpClient = new SimpleHttpClient()) {
             for (ArchiveFileExternal externalArchive : source.archiveOverview()) {
-                log.info("Checking for archive {} at {}", source.id(), externalArchive.getDate().format(DATE_FORMAT));
+                log.debug("Checking for archive {} at {}", source.id(), externalArchive.getDate().format(DATE_FORMAT));
                 externalFiles.put(externalArchive.getDate(), externalArchive);
                 if (!files.containsKey(externalArchive.getDate())) {
                     String encodedUrl = externalArchive.getUrl().replaceAll(" ", "%20");
