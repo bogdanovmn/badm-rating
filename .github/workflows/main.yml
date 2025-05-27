@@ -50,6 +50,6 @@ jobs:
           key: ${{ secrets.JINOJ_KEY }}
           script: |
             cd ${{ steps.vars.outputs.TARGET_DIR }}
-            export BACKEND_VERSION=${{ steps.vars.outputs.BACKEND_VERSION }}
+            sed -i "s/BACKEND_VERSION=.*/BACKEND_VERSION=${{ steps.vars.outputs.BACKEND_VERSION }}/" .env
             docker-compose down
             docker-compose up -d --build
