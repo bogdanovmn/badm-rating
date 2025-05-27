@@ -8,10 +8,11 @@ services:
     env_file:
       - .env
     environment:
+      - TZ=Europe/Moscow
       - SPRING_DATASOURCE_URL=jdbc:postgresql://shared-db:5432/badmrating
       - SPRING_PROFILES_ACTIVE=prod
       - OUTPUT=file
-      - JAVA_OPTS=-Dlocal-storage.path=/app/data -Xmx1024m
+      - JAVA_OPTS=-Dlocal-storage.path=/app/data -Xmx512m
     volumes:
       - /home/backend/brating/_data:/app/data
       - /var/log/brating:/app/logs

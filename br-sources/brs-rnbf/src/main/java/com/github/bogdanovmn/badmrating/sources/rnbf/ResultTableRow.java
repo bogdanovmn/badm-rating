@@ -34,11 +34,11 @@ class ResultTableRow {
         ).map(n -> {
             String newName = new HumanNameInputString(n).normalized(header.getPlayType().getSex());
             if (!newName.equals(n)) {
-                log.info("Normalize {} name '{}' to '{}'", header.getPlayType().getSex(), n, newName);
+                log.debug("Normalize {} name '{}' to '{}'", header.getPlayType().getSex(), n, newName);
             }
             return newName;
-        })
-            .orElse(null);
+        }).orElse(null);
+
         if (name == null) {
             log.warn("Can't find proper name. Skip record #{}", row.index());
             log.debug("Row:\n{}", row);
