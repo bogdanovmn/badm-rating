@@ -290,4 +290,44 @@
             CALL create_partition_for_source('player_actual_top_position', 3, 'RNBFVeteran');
         </sql>
     </changeSet>
+
+    <changeSet id="202512031400-userGroup-table" author="bogdanovmn">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_group"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_group">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="user_group" columnNames="user_id, name"/>
+    </changeSet>
+
+    <changeSet id="202512031401-userGroupPlayer-table" author="bogdanovmn">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_group_player"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_group_player">
+            <column name="group_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_user_group_player__group" references="user_group(id)" deleteCascade="true"/>
+            </column>
+            <column name="player_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_user_group_player__player" references="player(id)" deleteCascade="true"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="user_group_player" columnNames="group_id, player_id"/>
+        <createIndex tableName="user_group_player" indexName="i_user_group_player__player">
+            <column name="player_id"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

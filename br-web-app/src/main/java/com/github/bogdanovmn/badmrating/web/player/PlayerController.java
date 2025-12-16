@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.badmrating.web.player;
 
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerSearchResult;
+import com.github.bogdanovmn.badmrating.web.common.domain.TopType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +21,22 @@ class PlayerController {
     private final PlayerRatingService playerRatingService;
     private final PlayerService playerService;
 
+    @GetMapping("{id}")
+    PlayerSearchResult player(@PathVariable("id") UUID playerId) {
+        return playerService.getById(playerId);
+    }
+
     @GetMapping("{id}/rating-history")
     List<PlayerRatingHistory> playerRating(@PathVariable("id") UUID playerId) {
-        return playerRatingService.playerRatingHistory(playerId);
+        return playerRatingService.ratingHistory(playerId);
+    }
+
+    @GetMapping("{id}/rating-state")
+    List<PlayerRatingState> ratingState(
+        @PathVariable("id") UUID playerId,
+        @RequestParam("topType") TopType topType
+    ) {
+        return playerRatingService.ratingState(playerId, topType);
     }
 
     @GetMapping

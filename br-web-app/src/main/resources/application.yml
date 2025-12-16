@@ -24,3 +24,4 @@ spring:
     change-log: classpath:db/changelog.xml
 
 local-storage.path: D:\devel\data\badmrating
+security.roles.application-id-prefix: brating

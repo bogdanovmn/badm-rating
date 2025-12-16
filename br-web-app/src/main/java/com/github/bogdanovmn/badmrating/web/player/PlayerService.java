@@ -37,4 +37,12 @@ class PlayerService {
             })
             .toList();
     }
+
+    PlayerSearchResult getById(UUID playerId) {
+        return playerRepository.getById(playerId).orElseThrow(
+            () -> new NoSuchElementException(
+                String.format("Player with id %s not found", playerId)
+            )
+        );
+    }
 }

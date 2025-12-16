@@ -1,9 +1,10 @@
 package com.github.bogdanovmn.badmrating.web.top;
 
 import com.github.bogdanovmn.badmrating.core.PlayType;
+import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRatingSnapshot;
 import com.github.bogdanovmn.badmrating.web.common.domain.PlayerRepository;
 import com.github.bogdanovmn.badmrating.web.common.domain.Source;
-import com.github.bogdanovmn.badmrating.web.top.TopPlayersController.TopType;
+import com.github.bogdanovmn.badmrating.web.common.domain.TopType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.github.bogdanovmn.badmrating.web.top.TopPlayersController.TopType.global;
+import static com.github.bogdanovmn.badmrating.web.common.domain.TopType.global;
 
 @Component
 @RequiredArgsConstructor
@@ -23,11 +24,15 @@ public class TopPlayersRepository {
         .player(
             PlayerRepository.PLAYER_SEARCH_RESULT_ROW_MAPPER.mapRow(rs, rowNum)
         )
-        .position(rs.getInt("position"))
-        .rating(rs.getInt("rating_value"))
-        .ratingChange(rs.getInt("rating_change"))
-        .positionChange(rs.getInt("position_change"))
-        .updatedAt(rs.getTimestamp("rating_date").toLocalDateTime().toLocalDate())
+        .ratingSnapshot(
+            PlayerRatingSnapshot.builder()
+                .position(rs.getInt("position"))
+                .rating(rs.getInt("rating_value"))
+                .ratingChange(rs.getInt("rating_change"))
+                .positionChange(rs.getInt("position_change"))
+                .updatedAt(rs.getTimestamp("rating_date").toLocalDateTime().toLocalDate())
+            .build()
+        )
     .build();
 
     private final NamedParameterJdbcTemplate jdbc;

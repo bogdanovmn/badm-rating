@@ -2,6 +2,7 @@ package com.github.bogdanovmn.badmrating.web.top;
 
 import com.github.bogdanovmn.badmrating.core.PlayType;
 import com.github.bogdanovmn.badmrating.web.common.domain.Source;
+import com.github.bogdanovmn.badmrating.web.common.domain.TopType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +22,6 @@ import java.util.UUID;
 @Slf4j
 class TopPlayersController {
     private final TopPlayersService topPlayersService;
-    enum TopType { global, actual }
 
     @GetMapping("{topType}")
     List<PlayerTopPosition> getPlayersTop(

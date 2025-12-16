@@ -2,7 +2,7 @@ package com.github.bogdanovmn.badmrating.web.top;
 
 import com.github.bogdanovmn.badmrating.core.PlayType;
 import com.github.bogdanovmn.badmrating.web.common.domain.Source;
-import com.github.bogdanovmn.badmrating.web.top.TopPlayersController.TopType;
+import com.github.bogdanovmn.badmrating.web.common.domain.TopType;
 import com.github.bogdanovmn.badmrating.web.top.TopPlayersRepository.TopPositionHistoryRow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +40,7 @@ class TopPlayersService {
     private List<PlayerTopPosition> sortedPositions(List<PlayerTopPosition> positions) {
         return positions.stream()
             .sorted(
-                Comparator.comparingInt(PlayerTopPosition::getPosition)
+                Comparator.comparingInt((PlayerTopPosition p) -> p.getRatingSnapshot().getPosition())
                     .thenComparing(pp -> pp.getPlayer().getDetails().getName())
                     .thenComparing(pp -> pp.getPlayer().getId())
             ).toList();
