@@ -16,6 +16,7 @@ services:
     volumes:
       - /home/backend/brating/_data:/app/data
       - /var/log/brating:/app/logs
+      - /home/backend/auth-service/jwt:/app/jwt
     networks:
       - shared-network
 
