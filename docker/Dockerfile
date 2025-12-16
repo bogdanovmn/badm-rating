@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM openjdk:26-ea-slim
 WORKDIR /app
 RUN mkdir -p /app/logs
 COPY target/br-web-app-*.jar /app/app.jar
