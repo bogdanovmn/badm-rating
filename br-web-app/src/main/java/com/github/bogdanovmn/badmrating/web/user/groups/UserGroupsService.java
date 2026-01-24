@@ -1,6 +1,5 @@
 package com.github.bogdanovmn.badmrating.web.user.groups;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,17 +15,17 @@ class UserGroupsService {
     private final UserGroupsRepository userGroupsRepository;
 
     @Transactional(readOnly = true)
-    List<UserGroupBrief> userGroupsBriefList(UUID userId) {
+    public List<UserGroupBrief> userGroupsBriefList(UUID userId) {
         return userGroupsRepository.userGroupsBriefList(userId);
     }
 
     @Transactional(readOnly = true)
-    List<UserGroupBrief> userGroupsBriefListForPlayer(UUID userId, UUID playerId) {
+    public List<UserGroupBrief> userGroupsBriefListForPlayer(UUID userId, UUID playerId) {
         return userGroupsRepository.userGroupsBriefListForPlayer(userId, playerId);
     }
 
     @Transactional
-    UserGroupBrief create(@NotBlank String name, UUID userId) {
+    UserGroupBrief create(String name, UUID userId) {
         return UserGroupBrief.builder()
             .id(userGroupsRepository.create(name, userId))
             .name(name)
@@ -35,27 +34,39 @@ class UserGroupsService {
     }
 
     @Transactional
-    void delete(UUID groupId, UUID userId) {
+    public void delete(UUID groupId, UUID userId) {
         validateOrFail(userId, groupId);
         userGroupsRepository.delete(groupId);
     }
 
     @Transactional
-    void addPlayer(UUID groupId, @NotNull UUID playerId, UUID userId) {
+    public void addPlayer(UUID groupId, @NotNull UUID playerId, UUID userId) {
         validateOrFail(userId, groupId);
         userGroupsRepository.addPlayer(groupId, playerId);
     }
 
     @Transactional
-    void removePlayer(UUID groupId, UUID playerId, UUID userId) {
+    public void removePlayer(UUID groupId, UUID playerId, UUID userId) {
         validateOrFail(userId, groupId);
         userGroupsRepository.removePlayer(groupId, playerId);
     }
 
     @Transactional(readOnly = true)
-    List<UUID> groupPlayers(UUID groupId, UUID userId) {
+    public List<UUID> groupPlayers(UUID groupId, UUID userId) {
         validateOrFail(userId, groupId);
         return userGroupsRepository.groupPlayers(groupId);
+    }
+
+    @Transactional(readOnly = true)
+    public UserGroupBrief get(UUID groupId, UUID userId) {
+        validateOrFail(userId, groupId);
+        return userGroupsRepository.briefById(groupId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UUID[]> groupPairs(UUID groupId, UUID userId) {
+        validateOrFail(userId, groupId);
+        return userGroupsRepository.groupPairs(groupId);
     }
 
     private void validateOrFail(UUID userId, UUID groupId) {
@@ -64,8 +75,21 @@ class UserGroupsService {
         }
     }
 
-    UserGroupBrief get(UUID groupId, UUID userId) {
-        validateOrFail(userId, groupId);
-        return userGroupsRepository.briefById(groupId);
+    @Transactional
+    public void addPair(UUID groupId, List<UUID> pair) {
+        for (UUID playerId : pair) {
+            if (userGroupsRepository.isPairExistsForPlayer(groupId, playerId)) {
+                throw new IllegalArgumentException("Pair already exists for player %s".formatted(playerId));
+            }
+        }
+        userGroupsRepository.addPair(groupId, pair.get(0), pair.get(1));
+    }
+
+    @Transactional
+    public void removePair(UUID groupId, UUID playerId) {
+        if (!userGroupsRepository.isPairExistsForPlayer(groupId, playerId)) {
+            throw new IllegalArgumentException("Pair not exists for player %s".formatted(playerId));
+        }
+        userGroupsRepository.removePair(groupId, playerId);
     }
 }

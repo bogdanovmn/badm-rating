@@ -1,8 +1,9 @@
 package com.github.bogdanovmn.badmrating.web.user.groups;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,12 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class UserGroupsRepository {
+    private static final RowMapper<UserGroupBrief> USER_GROUP_BRIEF_ROW_MAPPER = (rs, rowNum) -> UserGroupBrief.builder()
+        .id(UUID.fromString(rs.getString("id")))
+        .name(rs.getString("name"))
+        .playersCount(rs.getInt("players_count"))
+    .build();
+
     private final NamedParameterJdbcTemplate jdbc;
 
     List<UserGroupBrief> userGroupsBriefList(UUID userId) {
@@ -25,11 +32,7 @@ public class UserGroupsRepository {
             ORDER BY g.name
         """,
             Map.of("userId", userId),
-            (rs, rowNum) -> UserGroupBrief.builder()
-                .id(UUID.fromString(rs.getString("id")))
-                .name(rs.getString("name"))
-                .playersCount(rs.getInt("players_count"))
-            .build()
+            USER_GROUP_BRIEF_ROW_MAPPER
         );
     }
 
@@ -60,11 +63,7 @@ public class UserGroupsRepository {
                 "userId", userId,
                 "playerId", playerId
             ),
-            (rs, rowNum) -> UserGroupBrief.builder()
-                .id(UUID.fromString(rs.getString("id")))
-                .name(rs.getString("name"))
-                .playersCount(rs.getInt("players_count"))
-            .build()
+            USER_GROUP_BRIEF_ROW_MAPPER
         );
     }
 
@@ -79,7 +78,7 @@ public class UserGroupsRepository {
         );
     }
 
-    UUID create(@NotBlank String name, UUID userId) {
+    UUID create(String name, UUID userId) {
         return jdbc.queryForObject(
             """
                 INSERT INTO user_group (name, user_id)
@@ -136,18 +135,78 @@ public class UserGroupsRepository {
 
     UserGroupBrief briefById(UUID groupId) {
         return jdbc.queryForObject("""
-            SELECT id, name, COUNT(gp.*) players_count
-            FROM user_group
-            LEFT JOIN user_group_player gp ON gp.group_id = user_group.id
-            WHERE user_group.id = :groupId
-            GROUP BY user_group.id
+            SELECT ug.id, ug.name, COUNT(gp.*) players_count
+            FROM user_group ug
+            LEFT JOIN user_group_player gp ON gp.group_id = ug.id
+            WHERE ug.id = :groupId
+            GROUP BY ug.id
         """,
             Map.of("groupId", groupId),
-            (rs, rowNum) -> UserGroupBrief.builder()
-                .id(UUID.fromString(rs.getString("id")))
-                .name(rs.getString("name"))
-                .playersCount(rs.getInt("players_count"))
-            .build()
+            USER_GROUP_BRIEF_ROW_MAPPER
+        );
+    }
+
+    List<UUID[]> groupPairs(UUID groupId) {
+        return jdbc.query("""
+            SELECT ARRAY[player1_id::text, player2_id::text] as pair
+            FROM user_group_pair
+            WHERE group_id = :groupId
+        """,
+            Map.of("groupId", groupId),
+            (rs, rowNum) -> {
+                String[] ids = (String[]) rs.getArray("pair").getArray();
+                return new UUID[]{
+                    UUID.fromString(ids[0]),
+                    UUID.fromString(ids[1])
+                };
+            }
+        );
+    }
+
+    boolean isPairExistsForPlayer(UUID groupId, UUID playerId) {
+        Integer count = jdbc.queryForObject("""
+            SELECT COUNT(*)
+            FROM user_group_pair
+            WHERE group_id = :groupId
+            AND (player1_id = :playerId OR player2_id = :playerId)
+        """,
+            Map.of(
+                "groupId", groupId,
+                "playerId", playerId
+            ),
+            Integer.class
+        );
+
+        return count != null && count > 0;
+    }
+
+    void addPair(UUID groupId, UUID player1Id, UUID player2Id) {
+        try {
+            jdbc.update("""
+                INSERT INTO user_group_pair (group_id, player1_id, player2_id) 
+                VALUES (:groupId, :player1Id, :player2Id)
+            """,
+                Map.of(
+                    "groupId", groupId,
+                    "player1Id", player1Id,
+                    "player2Id", player2Id
+                )
+            );
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Can't add pair: " + e.getMessage());
+        }
+    }
+
+    void removePair(UUID groupId, UUID oneOfPlayers) {
+        jdbc.update("""
+            DELETE FROM user_group_pair
+            WHERE group_id = :groupId
+              AND (player1_id = :playerId OR player2_id = :playerId)
+        """,
+            Map.of(
+                "groupId", groupId,
+                "playerId", oneOfPlayers
+            )
         );
     }
 }
