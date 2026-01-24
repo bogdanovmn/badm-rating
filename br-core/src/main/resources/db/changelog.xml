@@ -330,4 +330,48 @@
             <column name="player_id"/>
         </createIndex>
     </changeSet>
+
+    <changeSet id="202601100001-userGroupPair" author="bogdanovmn">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_group_pair"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_group_pair">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="group_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_user_group_pair__group" references="user_group(id)" deleteCascade="true"/>
+            </column>
+            <column name="player1_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="player2_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="user_group_pair"
+                                 baseColumnNames="group_id, player1_id"
+                                 constraintName="fk_user_group_pair__group_player1"
+                                 referencedTableName="user_group_player"
+                                 referencedColumnNames="group_id, player_id"
+                                 deleteCascade="true"/>
+
+        <addForeignKeyConstraint baseTableName="user_group_pair"
+                                 baseColumnNames="group_id, player2_id"
+                                 constraintName="fk_user_group_pair__group_player2"
+                                 referencedTableName="user_group_player"
+                                 referencedColumnNames="group_id, player_id"
+                                 deleteCascade="true"/>
+
+        <createIndex tableName="user_group_pair" indexName="i_user_group_pair__player1">
+            <column name="group_id"/>
+            <column name="player1_id"/>
+        </createIndex>
+        <createIndex tableName="user_group_pair" indexName="i_user_group_pair__player2">
+            <column name="group_id"/>
+            <column name="player2_id"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
