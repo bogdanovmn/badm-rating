@@ -4,11 +4,13 @@ import com.google.common.base.MoreObjects;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.With;
 
 @Value
 @Builder
 public class Player {
     @NonNull
+    @With
     String name;
     Integer year;
     String region;

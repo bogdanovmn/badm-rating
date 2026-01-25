@@ -49,6 +49,22 @@ class RnbfArchiveFileTest {
     }
 
     @Test
+    void content3() throws URISyntaxException {
+        List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("rank_20260120.xlsx")).content();
+        assertEquals(1398, content.size());
+        List<PersonalRating> rating = byName(content, "Степаков Глеб Антонович");
+        assertEquals(2, rating.size());
+
+        assertEquals(2005, rating.get(0).getPlayer().getYear());
+        assertEquals(PlayType.MD, rating.get(0).getType());
+        assertEquals(18875, rating.get(0).getValue());
+
+        assertEquals(2005, rating.get(1).getPlayer().getYear());
+        assertEquals(PlayType.XD, rating.get(1).getType());
+        assertEquals(14387, rating.get(1).getValue());
+    }
+
+    @Test
     void contentJunior() throws URISyntaxException {
         List<PersonalRating> content = new RnbfArchiveFile(FILE_RESOURCE.path("2024-06-04.xls")).content();
         assertEquals(7952, content.size());

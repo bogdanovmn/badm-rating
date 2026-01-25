@@ -69,6 +69,17 @@ class DataSyncService {
     private UUID createOrUpdatePlayer(Long importId, Player player) {
         Optional<PlayerSearchResult> persistedPlayer = playerRepository.findByName(player);
         if (persistedPlayer.isEmpty()) {
+            String[] parts = player.getName().split(" ");
+            if (parts.length == 3) {
+                String shortName = parts[0] + " " + parts[1];
+                log.debug("Try to find player '{}' by short name '{}'", player.getName(), shortName);
+                persistedPlayer = playerRepository.findByName(player.withName(shortName));
+                persistedPlayer.ifPresent(
+                    searchResult -> log.info("Found player '{}' by short name", searchResult.getId())
+                );
+            }
+        }
+        if (persistedPlayer.isEmpty()) {
             return playerRepository.create(importId, player).getId();
         } else {
             PlayerSearchResult persisted = persistedPlayer.get();

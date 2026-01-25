@@ -4,7 +4,9 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Hyperlink;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -99,6 +101,12 @@ public class ExcelCell {
                 } catch (IllegalStateException e) {
                     return null;
                 }
+            }
+        } else if (isString()) {
+            try {
+                return LocalDate.parse(cell.getStringCellValue(), DateTimeFormatter.ofPattern("dd.MM.yyyy")).atStartOfDay();
+            } catch (Exception e) {
+                return null;
             }
         }
         return null;
