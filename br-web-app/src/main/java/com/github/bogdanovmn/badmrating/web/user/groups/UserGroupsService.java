@@ -77,6 +77,9 @@ class UserGroupsService {
 
     @Transactional
     public void addPair(UUID groupId, List<UUID> pair) {
+        if (pair.get(0).equals(pair.get(1))) {
+            throw new IllegalArgumentException("Pair must be different players");
+        }
         for (UUID playerId : pair) {
             if (userGroupsRepository.isPairExistsForPlayer(groupId, playerId)) {
                 throw new IllegalArgumentException("Pair already exists for player %s".formatted(playerId));

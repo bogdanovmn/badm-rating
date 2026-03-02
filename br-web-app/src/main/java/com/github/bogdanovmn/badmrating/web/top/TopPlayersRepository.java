@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.github.bogdanovmn.badmrating.web.common.domain.TopType.global;
+import static com.github.bogdanovmn.badmrating.web.top.YearGroup.ALL;
 
 @Component
 @RequiredArgsConstructor
@@ -74,6 +75,96 @@ public class TopPlayersRepository {
             Map.of(
                 "sourceId", source.getId(),
                 "playType", playType.toString(),
+                "limit", topMaxResults
+            ),
+            PLAYERS_TOP_QUERY_RESULT_ROW_MAPPER
+        );
+    }
+
+    List<PlayerTopPosition> playersTopByYearGroup(PlayType playType, YearGroup yearGroup, int topMaxResults) {
+        return jdbc.query("""
+            WITH current_import AS (
+                SELECT i.id, i.file_date
+                FROM import i
+                WHERE i.source_id = 2
+                ORDER BY i.file_date DESC
+                LIMIT 1
+            ),
+            prev_import AS (
+                SELECT i.id, i.file_date
+                FROM import i
+                WHERE source_id = 2 AND i.id < (SELECT id FROM current_import)
+                ORDER BY i.file_date DESC
+                LIMIT 1
+            ),
+            filtered_players AS (
+                SELECT id FROM player WHERE year = :yearFrom OR year = :yearTo
+            ),
+            max_ratings AS (
+                SELECT DISTINCT ON (r.player_id)
+                    r.player_id,
+                    r.import_id,
+                    r.value
+                FROM rating r
+                JOIN current_import ci ON r.import_id = ci.id
+                JOIN filtered_players fp ON r.player_id = fp.id
+                WHERE r.play_type = :playType
+                ORDER BY r.player_id, r.value DESC
+            ),
+            ranked_players AS (
+                SELECT
+                    mr.player_id,
+                    DENSE_RANK() OVER (ORDER BY mr.value DESC) AS position,
+                    mr.value
+                FROM max_ratings mr
+            ),
+            prev_max_ratings AS (
+                SELECT DISTINCT ON (r.player_id)
+                    r.player_id,
+                    r.import_id,
+                    r.value
+                FROM rating r
+                JOIN prev_import i ON r.import_id = i.id
+                JOIN filtered_players fp ON r.player_id = fp.id
+                WHERE r.play_type = :playType
+                ORDER BY r.player_id, r.value DESC
+            ),
+            prev_ranked_players AS (
+                SELECT
+                    mr.player_id,
+                    DENSE_RANK() OVER (ORDER BY mr.value DESC) AS position,
+                    mr.value
+                FROM prev_max_ratings mr
+            )
+            SELECT
+                p.id,
+                p.name,
+                p.year,
+                r.short_name AS region,
+                p.rank,
+                (SELECT id FROM current_import) import_id,
+                (SELECT file_date FROM current_import) rating_date,
+                rp.position,
+                rp.value rating_value,
+                CASE
+                    WHEN pp.value IS NULL THEN 0
+                    ELSE rp.value - pp.value
+                END rating_change,
+    
+                CASE
+                    WHEN pp.position IS NULL THEN 0
+                    ELSE pp.position - rp.position
+                END position_change
+            FROM ranked_players rp
+            JOIN player p ON p.id = rp.player_id
+            LEFT JOIN region r ON r.id = p.region_id
+            LEFT JOIN prev_ranked_players pp ON pp.player_id = rp.player_id
+            WHERE rp.position <= :limit;
+            """,
+            Map.of(
+                "playType", playType.toString(),
+                "yearFrom", yearGroup.years().from(),
+                "yearTo",   yearGroup.years().to(),
                 "limit", topMaxResults
             ),
             PLAYERS_TOP_QUERY_RESULT_ROW_MAPPER

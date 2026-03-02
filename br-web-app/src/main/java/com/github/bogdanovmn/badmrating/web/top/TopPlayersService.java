@@ -20,14 +20,16 @@ import java.util.stream.Collectors;
 class TopPlayersService {
     private final TopPlayersRepository topPlayersRepository;
 
-    @Value("${top-players.size:50}")
+    @Value("${top-players.size:100}")
     private int topSize;
     @Value("${top-players.context.size:3}")
     private int topContextSize;
 
-    public List<PlayerTopPosition> playersTop(Source source, PlayType playType, TopType topType) {
+    public List<PlayerTopPosition> playersTop(Source source, PlayType playType, TopType topType, YearGroup yearGroup) {
         return sortedPositions(
-            topPlayersRepository.playersTop(topType, source, playType, topSize)
+            yearGroup == YearGroup.ALL
+                ? topPlayersRepository.playersTop(topType, source, playType, topSize)
+                : topPlayersRepository.playersTopByYearGroup(playType, yearGroup, topSize)
         );
     }
 

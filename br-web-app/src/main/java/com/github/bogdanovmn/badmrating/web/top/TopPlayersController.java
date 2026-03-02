@@ -27,9 +27,13 @@ class TopPlayersController {
     List<PlayerTopPosition> getPlayersTop(
         @PathVariable("topType") TopType topType,
         @RequestParam("source") Source source,
-        @RequestParam("playType") PlayType playType
+        @RequestParam("playType") PlayType playType,
+        @RequestParam("yearGroup") YearGroup yearGroup
     ) {
-        return topPlayersService.playersTop(source, playType, topType);
+        if (yearGroup != YearGroup.ALL && (source != Source.RNBFJunior || topType != TopType.actual)) {
+            throw new IllegalArgumentException("Only RNBFJunior/actual top available for yearGroup != ALL");
+        }
+        return topPlayersService.playersTop(source, playType, topType, yearGroup);
     }
 
     @GetMapping("{topType}/context/{playerId}")
