@@ -81,7 +81,7 @@ public class TopPlayersRepository {
         );
     }
 
-    List<PlayerTopPosition> playersTopByYearGroup(PlayType playType, YearGroup yearGroup, int topMaxResults) {
+    private List<PlayerTopPosition> playersPositionsByYearGroup(PlayType playType, YearGroup yearGroup, String whereClause, Map<String, Object> params) {
         return jdbc.query("""
             WITH current_import AS (
                 SELECT i.id, i.file_date
@@ -150,7 +150,6 @@ public class TopPlayersRepository {
                     WHEN pp.value IS NULL THEN 0
                     ELSE rp.value - pp.value
                 END rating_change,
-    
                 CASE
                     WHEN pp.position IS NULL THEN 0
                     ELSE pp.position - rp.position
@@ -159,16 +158,46 @@ public class TopPlayersRepository {
             JOIN player p ON p.id = rp.player_id
             LEFT JOIN region r ON r.id = p.region_id
             LEFT JOIN prev_ranked_players pp ON pp.player_id = rp.player_id
-            WHERE rp.position <= :limit;
-            """,
-            Map.of(
-                "playType", playType.toString(),
-                "yearFrom", yearGroup.years().from(),
-                "yearTo",   yearGroup.years().to(),
-                "limit", topMaxResults
-            ),
+            %s
+            ORDER BY rp.position;
+        """.formatted(whereClause),
+            params,
             PLAYERS_TOP_QUERY_RESULT_ROW_MAPPER
         );
+    }
+
+    List<PlayerTopPosition> playersPositionsByYearGroupTop(PlayType playType, YearGroup yearGroup, int topMaxResults) {
+        Map<String, Object> params = Map.of(
+            "playType", playType.toString(),
+            "yearFrom", yearGroup.years().from(),
+            "yearTo", yearGroup.years().to(),
+            "limit", topMaxResults
+        );
+        return playersPositionsByYearGroup(playType, yearGroup, "WHERE rp.position <= :limit", params);
+    }
+
+    List<PlayerTopPosition> playersPositionsByYearGroupContext(UUID playerId, PlayType playType, YearGroup yearGroup, int contextSize) {
+        Map<String, Object> params = Map.of(
+            "playerId", playerId,
+            "playType", playType.toString(),
+            "yearFrom", yearGroup.years().from(),
+            "yearTo", yearGroup.years().to(),
+            "contextSize", contextSize
+        );
+
+        String whereClause = """
+            WHERE rp.position BETWEEN (
+                SELECT GREATEST(1, position - :contextSize)
+                FROM ranked_players
+                WHERE player_id = :playerId
+            ) AND (
+                SELECT position + :contextSize
+                FROM ranked_players
+                WHERE player_id = :playerId
+            )
+        """;
+
+        return playersPositionsByYearGroup(playType, yearGroup, whereClause, params);
     }
 
     List<PlayerTopPosition> topPositionContext(TopType topType, UUID playerId, Source source, PlayType playType, int contextSize) {

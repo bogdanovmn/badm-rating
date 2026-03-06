@@ -46,6 +46,14 @@ class TopPlayersController {
         return topPlayersService.playerTopContext(playerId, source, playType, topType);
     }
 
+    @GetMapping("junior/context/{playerId}")
+    List<PlayerTopPosition> getPlayersTopContext(
+        @PathVariable("playerId") UUID playerId,
+        @RequestParam("playType") PlayType playType
+    ) {
+        return topPlayersService.playerJuniorTopContext(playerId, playType);
+    }
+
     @GetMapping("{topType}/position-history")
     Map<LocalDate, Integer> getPlayerTopPositionHistory(
         @PathVariable("topType") TopType topType,

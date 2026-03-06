@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Comparator;
 
 @RequiredArgsConstructor
 enum YearGroup {
@@ -27,4 +29,15 @@ enum YearGroup {
                 currentYear - this.maxAge + 2
             );
     }
+
+    public static YearGroup ofBirthYear(int birthYear) {
+        int currentYear = LocalDate.now().getYear();
+        int ageThisYear = currentYear - birthYear;
+
+        return Arrays.stream(values())
+            .filter(group -> group.maxAge >= ageThisYear)
+            .min(Comparator.comparingInt(YearGroup::getMaxAge))
+            .orElse(ALL);
+    }
+
 }
